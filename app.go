@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/HeavenAQ/api"
 )
@@ -10,20 +11,43 @@ import (
 type App struct {
 	Bot         *api.LineBotHandler
 	Drive       *api.GoogleDriveHandler
-	RootFolder  *api.GoogleDriveHandler
+	Db          *api.FirebaseHandler
+	RootFolder  string
 	InfoLogger  *log.Logger
 	ErrorLogger *log.Logger
 	WarnLogger  *log.Logger
 }
 
 func NewApp() *App {
+	rootFolder := os.Getenv("GOOGLE_ROOT_FOLDER_ID")
+	infoLogger := log.New(log.Writer(), "[INFO] ", log.LstdFlags)
+	errorLogger := log.New(log.Writer(), "[ERROR] ", log.LstdFlags)
+	warnLogger := log.New(log.Writer(), "[WARN] ", log.LstdFlags)
 
+	db, err := api.NewFirebaseHandler()
+	if err != nil {
+		errorLogger.Println("Error initializing firebase database client:", err)
+	}
+
+	bot, err := api.NewLineBotHandler()
+	if err != nil {
+		errorLogger.Println("Error initializing line bot client:", err)
+	}
+
+	drive, err := api.NewGoogleDriveHandler()
+	if err != nil {
+		errorLogger.Println("Error initializing google drive client:", err)
+	}
+
+	infoLogger.Println("App initialized successfully.")
 	return &App{
-		Bot:         api.NewLineBotHandler(),
-		Drive:       api.NewGoogleDriveHandler(),
-		InfoLogger:  log.New(log.Writer(), "[INFO] ", log.LstdFlags),
-		ErrorLogger: log.New(log.Writer(), "[ERROR] ", log.LstdFlags),
-		WarnLogger:  log.New(log.Writer(), "[WARN] ", log.LstdFlags),
+		Bot:         bot,
+		Drive:       drive,
+		Db:          db,
+		RootFolder:  rootFolder,
+		InfoLogger:  infoLogger,
+		ErrorLogger: errorLogger,
+		WarnLogger:  warnLogger,
 	}
 }
 

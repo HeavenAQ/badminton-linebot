@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 
@@ -18,7 +17,7 @@ type GoogleDriveHandler struct {
 	RootFolderID string
 }
 
-func NewGoogleDriveHandler() *GoogleDriveHandler {
+func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 	ctx := context.Background()
 	config := &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
@@ -35,7 +34,7 @@ func NewGoogleDriveHandler() *GoogleDriveHandler {
 	client := oauth2.NewClient(ctx, tokenSource)
 	srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		log.Fatalf("Unable to retrieve Drive client: %v", err)
+		return nil, err
 	}
 
 	return &GoogleDriveHandler{
@@ -43,5 +42,5 @@ func NewGoogleDriveHandler() *GoogleDriveHandler {
 		client,
 		srv,
 		os.Getenv("GOOGLE_ROOT_FOLDER_ID"),
-	}
+	}, nil
 }
