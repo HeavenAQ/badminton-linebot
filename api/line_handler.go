@@ -12,17 +12,17 @@ type LineBotHandler struct {
 	bot *linebot.Client
 }
 
-func NewLineBotHandler() *LineBotHandler {
+func NewLineBotHandler() (*LineBotHandler, error) {
 	bot, err := linebot.New(
 		os.Getenv("CHANNEL_SECRET"),
 		os.Getenv("CHANNEL_TOKEN"),
 	)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	return &LineBotHandler{
 		bot,
-	}
+	}, nil
 }
 
 func (handler *LineBotHandler) RetrieveCbEvent(w http.ResponseWriter, req *http.Request) ([]*linebot.Event, error) {
@@ -63,6 +63,10 @@ func (handler *LineBotHandler) handleTextMessage(event *linebot.Event) {
 	}
 }
 
-func (handler *LineBotHandler) handlerVideoMessage(event *linebot.Event) {
-
+func (handler *LineBotHandler) GetUserName(userId string) (string, error) {
+	profile, err := handler.bot.GetProfile(userId).Do()
+	if err != nil {
+		return "", err
+	}
+	return profile.DisplayName, nil
 }

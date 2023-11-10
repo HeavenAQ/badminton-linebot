@@ -17,6 +17,17 @@ type GoogleDriveHandler struct {
 	RootFolderID string
 }
 
+type UserFolders struct {
+	userId           string
+	userName         string
+	rootFolderId     string
+	liftFolderId     string
+	dropFolderId     string
+	netplayFolderId  string
+	clearFolderId    string
+	footworkFolderId string
+}
+
 func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 	ctx := context.Background()
 	config := &oauth2.Config{
@@ -43,4 +54,48 @@ func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 		srv,
 		os.Getenv("GOOGLE_ROOT_FOLDER_ID"),
 	}, nil
+}
+
+func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName string) (*UserFolders, error) {
+	folderNames := []string{
+		userId,
+		"lift",
+		"drop",
+		"netplay",
+		"clear",
+		"footwork",
+	}
+
+	userFolders := UserFolders{
+		userId:   userId,
+		userName: userName,
+	}
+
+	for _, folderName := range folderNames {
+		folder, err := handler.srv.Files.Create(&drive.File{
+			Name:     folderName,
+			MimeType: "application/vnd.google-apps.folder",
+			Parents:  []string{handler.RootFolderID},
+		}).Do()
+		if err != nil {
+			return nil, err
+		}
+
+		switch folderName {
+		case userId:
+			userFolders.rootFolderId = folder.Id
+		case "lift":
+			userFolders.liftFolderId = folder.Id
+		case "drop":
+			userFolders.dropFolderId = folder.Id
+		case "netplay":
+			userFolders.netplayFolderId = folder.Id
+		case "clear":
+			userFolders.clearFolderId = folder.Id
+		case "footwork":
+			userFolders.footworkFolderId = folder.Id
+		}
+	}
+
+	return &userFolders, nil
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/HeavenAQ/app"
 	"github.com/joho/godotenv"
 )
 
@@ -13,7 +14,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	app := NewApp()
+	app := app.NewApp()
 	http.HandleFunc("/callback", app.HandleCallback)
 
 	if err := http.ListenAndServe(":"+"3000", nil); err != nil {

@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"log"
@@ -61,5 +61,10 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 	log.Println("Handling events...")
 	for _, event := range events {
 		app.InfoLogger.Println("Handling event: ", event)
+
+		user, err := app.Db.GetUserData(event.Source.UserID)
+		if err != nil {
+			user = app.createUser(event.Source.UserID)
+		}
 	}
 }
