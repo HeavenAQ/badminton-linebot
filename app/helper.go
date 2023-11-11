@@ -18,13 +18,12 @@ func (app *App) createUser(userId string) db.UserData {
 	return userData[userId]
 }
 
-func (app *App) createUserIfNotExist(userId string) (user db.UserData) {
-	userData, err := app.Db.GetUserData(userId)
+func (app *App) createUserIfNotExist(userId string) (user *db.UserData) {
+	user, err := app.Db.GetUserData(userId)
 	if err != nil {
 		app.WarnLogger.Println("User not found, creating new user...")
-		user = app.createUser(userId)
-	} else {
-		user = userData[userId]
+		userData := app.createUser(userId)
+		user = &userData
 	}
 	return
 }

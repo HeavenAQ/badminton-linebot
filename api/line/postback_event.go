@@ -1,7 +1,6 @@
 package line
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/HeavenAQ/api/db"
@@ -131,7 +130,8 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 
 	urls := actionUrls[user.Handedness][skill]
 	if len(urls) == 0 {
-		return errors.New("No expert video found")
+		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("請輸入正確的羽球動作")).Do()
+		return nil
 	}
 
 	msgs := []linebot.SendingMessage{
@@ -148,6 +148,50 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 		msgs = append(msgs, linebot.NewTextMessage(msg))
 	}
 
-	handler.bot.ReplyMessage(event.ReplyToken, msgs...).Do()
+	_, err := handler.bot.ReplyMessage(event.ReplyToken, msgs...).Do()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill) error {
+	works := user.Portfolio.GetSkillMap(skill.String())
+	if works == nil {
+		msg := "請輸入正確的羽球動作"
+		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+		return nil
+	}
+
+	if len(works) == 0 {
+		msg := fmt.Sprintf("尚未上傳【%v】的學習反思及影片", skill.ChnString())
+		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+		return nil
+	}
+
+	carousels, err := handler.getCarousels(works)
+	if err != nil {
+		return err
+	}
+
+	// turn carousels into sending messages
+	var sendMsgs []linebot.SendingMessage
+	for _, msg := range carousels {
+		sendMsgs = append(sendMsgs, msg)
+	}
+
+	_, err = handler.bot.ReplyMessage(event.ReplyToken, sendMsgs...).Do()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ResolveUpload(event *linebot.Event, user *db.UserData, skill Skill) error {
+	return nil
+}
+
+func ResolveAddReflection(event *linebot.Event, user *db.UserData, skill Skill) error {
 	return nil
 }

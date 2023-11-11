@@ -46,11 +46,11 @@ func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (
 				Footwork: userFolders.FootworkFolderId,
 			},
 			Portfolio: Portfolio{
-				Lift:     map[string]map[string]Work{},
-				Drop:     map[string]map[string]Work{},
-				Netplay:  map[string]map[string]Work{},
-				Clear:    map[string]map[string]Work{},
-				Footwork: map[string]map[string]Work{},
+				Lift:     map[string]Work{},
+				Drop:     map[string]Work{},
+				Netplay:  map[string]Work{},
+				Clear:    map[string]Work{},
+				Footwork: map[string]Work{},
 			},
 		},
 	}
@@ -62,14 +62,14 @@ func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (
 	return newUserTemplate, nil
 }
 
-func (handler *FirebaseHandler) GetUserData(userId string) (UserMap, error) {
+func (handler *FirebaseHandler) GetUserData(userId string) (*UserData, error) {
 	docsnap, err := handler.GetCollection().Doc(userId).Get(handler.ctx)
 	if err != nil {
 		return nil, err
 	}
-	var userMap UserMap
-	docsnap.DataTo(&userMap)
-	return userMap, nil
+	var user UserData
+	docsnap.DataTo(&user)
+	return &user, nil
 }
 
 func (handler *FirebaseHandler) updateUserData(user *UserData) error {

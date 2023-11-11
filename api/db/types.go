@@ -7,6 +7,19 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
+type UserSessionMap map[string]UserSession
+type UserSession struct {
+	UserState UserState `json:"userState"`
+	Skill     string    `json:"skill"`
+}
+
+type UserState int8
+
+const (
+	WritingReflection = iota
+	UploadingVideo
+)
+
 type FirebaseHandler struct {
 	dbClient *firestore.Client
 	ctx      context.Context
@@ -31,11 +44,28 @@ type FolderIds struct {
 }
 
 type Portfolio struct {
-	Lift     map[string]map[string]Work `json:"lift"`
-	Drop     map[string]map[string]Work `json:"drop"`
-	Netplay  map[string]map[string]Work `json:"netplay"`
-	Clear    map[string]map[string]Work `json:"clear"`
-	Footwork map[string]map[string]Work `json:"footwork"`
+	Lift     map[string]Work `json:"lift"`
+	Drop     map[string]Work `json:"drop"`
+	Netplay  map[string]Work `json:"netplay"`
+	Clear    map[string]Work `json:"clear"`
+	Footwork map[string]Work `json:"footwork"`
+}
+
+func (p *Portfolio) GetSkillMap(skill string) map[string]Work {
+	switch skill {
+	case "lift":
+		return p.Lift
+	case "drop":
+		return p.Drop
+	case "netplay":
+		return p.Netplay
+	case "clear":
+		return p.Clear
+	case "footwork":
+		return p.Footwork
+	default:
+		return nil
+	}
 }
 
 type Work struct {

@@ -87,13 +87,13 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (app *App) handleMessageEvent(event *linebot.Event, user db.UserData) {
+func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData) {
 	replyToken := event.ReplyToken
 	switch event.Message.(*linebot.TextMessage).Text {
 	case "使用說明": // A
 		app.Bot.SendInstruction(replyToken)
 	case "我的學習歷程": // B
-	// handleCourseInfo(event)
+		app.Bot.PromptSkillSelection(replyToken, line.ViewPortfolio, "請選擇要查看的學習歷程")
 	case "專家影片": // C
 		app.Bot.PromptHandednessSelection(replyToken)
 	case "上傳錄影": // D
@@ -131,11 +131,14 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 		app.Bot.SendWrongHandednessReply(replyToken)
 		return
 	}
-	err = app.Db.UpdateUserHandedness(user, handedness)
-	if err != nil {
-		app.WarnLogger.Println("Error updating user handedness:", err)
-		app.Bot.SendDefaultErrorReply(replyToken)
-		return
+
+	if user.Handedness != handedness {
+		err = app.Db.UpdateUserHandedness(user, handedness)
+		if err != nil {
+			app.WarnLogger.Println("Error updating user handedness:", err)
+			app.Bot.SendDefaultErrorReply(replyToken)
+			return
+		}
 	}
 	app.Bot.PromptSkillSelection(replyToken, line.ViewExpertVideo, "請選擇要觀看的動作")
 }
@@ -160,14 +163,19 @@ func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [
 func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, action line.UserActionPostback) error {
 	switch action.Type {
 	case line.Upload:
-		app.Bot.ResolveUpload(replyToken, user, action.Skill)
+		app.Bot.ResolveUpload(event, user, action.Skill)
 	case line.AddReflection:
 		app.Bot.ResolveAddReflection(event, user, action.Skill)
 	case line.ViewPortfolio:
-		app.Bot.ResolveViewPortfolio(replyToken, user, action.Skill)
+		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill)
+		if err != nil {
+			return errors.New("Error resolving view portfolio: " + err.Error())
+		}
 	case line.ViewExpertVideo:
-		app.Bot.ResolveViewExpertVideo(event, user, action.Skill)
-
+		err := app.Bot.ResolveViewExpertVideo(event, user, action.Skill)
+		if err != nil {
+			return errors.New("Error resolving view expert video: " + err.Error())
+		}
 	}
 	return errors.New("Invalid user action type")
 }
