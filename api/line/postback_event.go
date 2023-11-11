@@ -2,6 +2,7 @@ package line
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -133,9 +134,17 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 		return errors.New("No expert video found")
 	}
 
-	msgs := []linebot.SendingMessage{}
-	for _, url := range urls {
-		msgs = append(msgs, linebot.NewTextMessage(url))
+	msgs := []linebot.SendingMessage{
+		linebot.NewTextMessage(
+			fmt.Sprintf(
+				"以下為【%v】-【%v】示範影片：",
+				user.Handedness.ChnString(),
+				skill.ChnString(),
+			)),
+	}
+	for i, url := range urls {
+		msg := fmt.Sprintf("專家影片%v：\n%v", i+1, url)
+		msgs = append(msgs, linebot.NewTextMessage(msg))
 	}
 
 	handler.bot.ReplyMessage(event.ReplyToken, msgs...).Do()
