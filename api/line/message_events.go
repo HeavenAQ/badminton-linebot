@@ -1,12 +1,19 @@
 package line
 
 import (
-	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 func (handler *LineBotHandler) SendDefaultReply(replyToken string) {
 	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: "請點選選單的項目"})
+}
+
+func (handler *LineBotHandler) SendDefaultErrorReply(replyToken string) {
+	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: "發生錯誤，請重新操作"})
+}
+
+func (handler *LineBotHandler) SendWrongHandednessReply(replyToken string) {
+	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: "請選擇左手或右手"})
 }
 
 func (handler *LineBotHandler) SendInstruction(replyToken string) {
@@ -28,9 +35,16 @@ func (handler *LineBotHandler) SendSyllabus(replyToken string) {
 	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: msg})
 }
 
-func (handler *LineBotHandler) PromptSelectReflection(replyToken string, user db.UserData) {
-	msg := linebot.NewTextMessage("請選擇要新增學習反思的動作").WithQuickReplies(
-		handler.getSkillQuickReplyItems(AddReflection),
+func (handler *LineBotHandler) PromptSkillSelection(replyToken string, action Action, prompt string) {
+	msg := linebot.NewTextMessage(prompt).WithQuickReplies(
+		handler.getSkillQuickReplyItems(action),
+	)
+	handler.bot.ReplyMessage(replyToken, msg)
+}
+
+func (handler *LineBotHandler) PromptHandednessSelection(replyToken string) {
+	msg := linebot.NewTextMessage("請選擇左手或右手").WithQuickReplies(
+		handler.getHandednessQuickReplyItems(),
 	)
 	handler.bot.ReplyMessage(replyToken, msg)
 }

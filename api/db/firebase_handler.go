@@ -30,11 +30,13 @@ func (handler *FirebaseHandler) GetCollection() *firestore.CollectionRef {
 	return handler.dbClient.Collection(collection)
 }
 
-func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (map[string]UserTemplate, error) {
+func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (UserMap, error) {
 	ref := handler.GetCollection().NewDoc()
-	newUserTemplate := map[string]UserTemplate{
+	newUserTemplate := UserMap{
 		userFolders.UserId: {
-			Name: userFolders.UserName,
+			Name:       userFolders.UserName,
+			Id:         userFolders.UserId,
+			Handedness: Right,
 			FolderIds: FolderIds{
 				Root:     userFolders.RootFolderId,
 				Lift:     userFolders.LiftFolderId,
@@ -60,16 +62,25 @@ func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (
 	return newUserTemplate, nil
 }
 
-func (handler *FirebaseHandler) GetUserData(userId string) (UserData, error) {
+func (handler *FirebaseHandler) GetUserData(userId string) (UserMap, error) {
 	docsnap, err := handler.GetCollection().Doc(userId).Get(handler.ctx)
 	if err != nil {
 		return nil, err
 	}
-	var userData map[string]UserTemplate
-	docsnap.DataTo(&userData)
-	return userData, nil
+	var userMap UserMap
+	docsnap.DataTo(&userMap)
+	return userMap, nil
 }
 
-func (handler *FirebaseHandler) Close() {
-	handler.dbClient.Close()
+func (handler *FirebaseHandler) updateUserData(user *UserData) error {
+	_, err := handler.GetCollection().Doc(user.Id).Set(handler.ctx, UserMap{user.Id: *user})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness Handedness) error {
+	user.Handedness = handedness
+	return handler.updateUserData(user)
 }

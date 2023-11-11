@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 
 	"cloud.google.com/go/firestore"
 )
@@ -13,9 +14,11 @@ type FirebaseHandler struct {
 
 type UserMap map[string]UserData
 type UserData struct {
-	Name      string    `json:"name"`
-	FolderIds FolderIds `json:"folderIds"`
-	Portfolio Portfolio `json:"portfolio"`
+	Name       string     `json:"name"`
+	Handedness Handedness `json:"handedness"`
+	Id         string     `json:"id"`
+	FolderIds  FolderIds  `json:"folderIds"`
+	Portfolio  Portfolio  `json:"portfolio"`
 }
 
 type FolderIds struct {
@@ -40,4 +43,30 @@ type Work struct {
 	Video      string `json:"video"`
 	Thumbnail  string `json:"thumbnail"`
 	Reflection string `json:"reflection"`
+}
+
+type Handedness int8
+
+const (
+	Left Handedness = iota
+	Right
+)
+
+func (h Handedness) String() string {
+	return [...]string{"left", "right"}[h]
+}
+
+func (h Handedness) ChnString() string {
+	return [...]string{"左手", "右手"}[h]
+}
+
+func HandednessStrToEnum(str string) (Handedness, error) {
+	switch str {
+	case "left":
+		return Left, nil
+	case "right":
+		return Right, nil
+	default:
+		return -1, errors.New("invalid handedness")
+	}
 }
