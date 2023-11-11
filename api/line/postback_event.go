@@ -142,6 +142,7 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 				skill.ChnString(),
 			)),
 	}
+
 	for i, url := range urls {
 		msg := fmt.Sprintf("專家影片%v：\n%v", i+1, url)
 		msgs = append(msgs, linebot.NewTextMessage(msg))

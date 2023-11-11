@@ -10,6 +10,7 @@ import (
 	"github.com/HeavenAQ/api/db"
 	"github.com/HeavenAQ/api/drive"
 	"github.com/HeavenAQ/api/line"
+	"github.com/alexedwards/scs/v2"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
@@ -18,6 +19,7 @@ type App struct {
 	Drive       *drive.GoogleDriveHandler
 	Db          *db.FirebaseHandler
 	RootFolder  string
+	Session     *scs.SessionManager
 	InfoLogger  *log.Logger
 	ErrorLogger *log.Logger
 	WarnLogger  *log.Logger
