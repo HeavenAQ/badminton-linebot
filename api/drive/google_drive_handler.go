@@ -1,32 +1,13 @@
-package api
+package drive
 
 import (
 	"context"
-	"net/http"
 	"os"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
-
-type GoogleDriveHandler struct {
-	tokenSource  oauth2.TokenSource
-	client       *http.Client
-	srv          *drive.Service
-	RootFolderID string
-}
-
-type UserFolders struct {
-	userId           string
-	userName         string
-	rootFolderId     string
-	liftFolderId     string
-	dropFolderId     string
-	netplayFolderId  string
-	clearFolderId    string
-	footworkFolderId string
-}
 
 func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 	ctx := context.Background()
@@ -67,8 +48,8 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 	}
 
 	userFolders := UserFolders{
-		userId:   userId,
-		userName: userName,
+		UserId:   userId,
+		UserName: userName,
 	}
 
 	for _, folderName := range folderNames {
@@ -83,17 +64,17 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 
 		switch folderName {
 		case userId:
-			userFolders.rootFolderId = folder.Id
+			userFolders.RootFolderId = folder.Id
 		case "lift":
-			userFolders.liftFolderId = folder.Id
+			userFolders.LiftFolderId = folder.Id
 		case "drop":
-			userFolders.dropFolderId = folder.Id
+			userFolders.DropFolderId = folder.Id
 		case "netplay":
-			userFolders.netplayFolderId = folder.Id
+			userFolders.NetplayFolderId = folder.Id
 		case "clear":
-			userFolders.clearFolderId = folder.Id
+			userFolders.ClearFolderId = folder.Id
 		case "footwork":
-			userFolders.footworkFolderId = folder.Id
+			userFolders.FootworkFolderId = folder.Id
 		}
 	}
 

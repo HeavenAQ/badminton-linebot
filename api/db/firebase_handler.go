@@ -1,4 +1,4 @@
-package api
+package db
 
 import (
 	"context"
@@ -7,42 +7,8 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"github.com/HeavenAQ/api/drive"
 )
-
-type FirebaseHandler struct {
-	dbClient *firestore.Client
-	ctx      context.Context
-}
-
-type UserTemplate struct {
-	Name      string    `json:"name"`
-	FolderIds FolderIds `json:"folderIds"`
-	Portfolio Portfolio `json:"portfolio"`
-}
-
-type FolderIds struct {
-	Root     string `json:"root"`
-	Lift     string `json:"lift"`
-	Drop     string `json:"drop"`
-	Netplay  string `json:"netplay"`
-	Clear    string `json:"clear"`
-	Footwork string `json:"footwork"`
-}
-
-type Portfolio struct {
-	Lift     map[string]map[string]Work `json:"lift"`
-	Drop     map[string]map[string]Work `json:"drop"`
-	Netplay  map[string]map[string]Work `json:"netplay"`
-	Clear    map[string]map[string]Work `json:"clear"`
-	Footwork map[string]map[string]Work `json:"footwork"`
-}
-
-type Work struct {
-	Date       string `json:"date"`
-	Video      string `json:"video"`
-	Thumbnail  string `json:"thumbnail"`
-	Reflection string `json:"reflection"`
-}
 
 func NewFirebaseHandler() (*FirebaseHandler, error) {
 	ctx := context.Background()
@@ -64,18 +30,18 @@ func (handler *FirebaseHandler) GetCollection() *firestore.CollectionRef {
 	return handler.dbClient.Collection(collection)
 }
 
-func (handler *FirebaseHandler) CreateUserData(userFolders *UserFolders) (map[string]UserTemplate, error) {
+func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (map[string]UserTemplate, error) {
 	ref := handler.GetCollection().NewDoc()
 	newUserTemplate := map[string]UserTemplate{
-		userFolders.userId: {
-			Name: userFolders.userName,
+		userFolders.UserId: {
+			Name: userFolders.UserName,
 			FolderIds: FolderIds{
-				Root:     userFolders.rootFolderId,
-				Lift:     userFolders.liftFolderId,
-				Drop:     userFolders.dropFolderId,
-				Netplay:  userFolders.netplayFolderId,
-				Clear:    userFolders.clearFolderId,
-				Footwork: userFolders.footworkFolderId,
+				Root:     userFolders.RootFolderId,
+				Lift:     userFolders.LiftFolderId,
+				Drop:     userFolders.DropFolderId,
+				Netplay:  userFolders.NetplayFolderId,
+				Clear:    userFolders.ClearFolderId,
+				Footwork: userFolders.FootworkFolderId,
 			},
 			Portfolio: Portfolio{
 				Lift:     map[string]map[string]Work{},
@@ -94,7 +60,7 @@ func (handler *FirebaseHandler) CreateUserData(userFolders *UserFolders) (map[st
 	return newUserTemplate, nil
 }
 
-func (handler *FirebaseHandler) GetUserData(userId string) (map[string]UserTemplate, error) {
+func (handler *FirebaseHandler) GetUserData(userId string) (UserData, error) {
 	docsnap, err := handler.GetCollection().Doc(userId).Get(handler.ctx)
 	if err != nil {
 		return nil, err
