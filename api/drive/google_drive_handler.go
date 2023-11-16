@@ -2,7 +2,9 @@ package drive
 
 import (
 	"context"
+	"io"
 	"os"
+	"time"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/api/drive/v3"
@@ -79,4 +81,18 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 	}
 
 	return &userFolders, nil
+}
+
+func (handler *GoogleDriveHandler) UploadVideo(folderId string, blob io.Reader) (*drive.File, error) {
+	filename := time.Now().Format("2006-01-02-15-04")
+	driveFile, err := handler.srv.Files.Create(&drive.File{
+		Name:    filename,
+		Parents: []string{folderId},
+	}).Media(blob).Do()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return driveFile, nil
 }

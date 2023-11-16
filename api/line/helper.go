@@ -2,12 +2,13 @@ package line
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func (handler LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleContainer {
+func (handler *LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleContainer {
 	return &linebot.BubbleContainer{
 		Type: "bubble",
 		Header: &linebot.BoxComponent{
@@ -18,7 +19,7 @@ func (handler LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleConta
 					Type:   "text",
 					Weight: "bold",
 					Size:   "xl",
-					Text:   work.Date,
+					Text:   work.DateTime,
 				},
 			},
 		},
@@ -54,15 +55,15 @@ func (handler LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleConta
 	}
 }
 
-func (handler LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebot.FlexMessage, error) {
+func (handler *LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebot.FlexMessage, error) {
 	items := []*linebot.BubbleContainer{}
 	carouselItems := []*linebot.FlexMessage{}
 	for _, work := range works {
 		// if no video or reflection, return error
 		if work.Video == "" {
-			return nil, errors.New("請上傳" + work.Date + "的學習錄影")
+			return nil, errors.New("請上傳" + work.DateTime + "的學習錄影")
 		} else if work.Reflection == "" {
-			return nil, errors.New("請輸入" + work.Date + "的學習反思")
+			return nil, errors.New("請輸入" + work.DateTime + "的學習反思")
 		}
 
 		items = append(items, handler.getCarouselItem(work))
@@ -81,4 +82,69 @@ func (handler LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebot
 		}
 	}
 	return carouselItems, nil
+}
+
+func (handler *LineBotHandler) replyViewPortfolioError(works map[string]db.Work, event *linebot.Event, skill Skill) error {
+	if works == nil {
+		msg := "請輸入正確的羽球動作"
+		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+		return nil
+	}
+
+	if len(works) == 0 {
+		msg := fmt.Sprintf("尚未上傳【%v】的學習反思及影片", skill.ChnString())
+		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+		return nil
+	}
+	return nil
+}
+
+func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []string {
+	actionUrls := map[db.Handedness]map[Skill][]string{
+		db.Right: {
+			Lift: []string{
+				"https://www.youtube.com/watch?v=lenLFoRFPlk&list=PLZEILcK2CNCvVRym5xnKSFGFHmD13wQhM",
+				"https://youtu.be/k9RejtgoatA",
+			},
+			Drop: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+			Netplay: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+			Clear: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+			Footwork: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+		},
+		db.Left: {
+			Lift: []string{
+				"https://youtu.be/ah9ZE9KNFpI",
+				"https://youtu.be/JKbQSG27vkk",
+			},
+			Drop: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+			Netplay: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+			Clear: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+			Footwork: []string{
+				"https://tmp.com",
+				"https://tmp.com",
+			},
+		},
+	}
+	return actionUrls[hand][skill]
 }

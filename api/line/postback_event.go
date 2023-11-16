@@ -8,58 +8,40 @@ import (
 )
 
 func (handler *LineBotHandler) getSkillQuickReplyItems(actionType Action) *linebot.QuickReplyItems {
-	switch actionType {
-	case ViewPortfolio:
-		return handler.getAddReflectionQuickReplyItems(actionType)
-	case ViewExpertVideo:
-		return handler.getAddReflectionQuickReplyItems(actionType)
-	case Upload:
-		return handler.getUploadQuickReplyItems(actionType)
-	case AddReflection:
-		return handler.getAddReflectionQuickReplyItems(actionType)
-	default:
-		return nil
-	}
-}
-
-func (handler *LineBotHandler) getUploadQuickReplyItems(actionType Action) *linebot.QuickReplyItems {
 	items := []*linebot.QuickReplyButton{}
 	userAction := UserActionPostback{Type: actionType}
+	replyAction := handler.getQuickReplyAction(actionType, Lift)
+
 	for _, skill := range []Skill{Lift, Drop, Netplay, Clear, Footwork} {
 		userAction.Skill = skill
 		items = append(items, linebot.NewQuickReplyButton(
 			"",
-			linebot.NewPostbackAction(
-				skill.String(),
-				userAction.String(),
-				"",
-				skill.ChnString(),
-				"openCamera",
-				"",
-			),
+			replyAction(userAction),
 		))
 	}
 	return linebot.NewQuickReplyItems(items...)
 }
 
-func (handler *LineBotHandler) getAddReflectionQuickReplyItems(actionType Action) *linebot.QuickReplyItems {
-	items := []*linebot.QuickReplyButton{}
-	userAction := UserActionPostback{Type: actionType}
-	for _, skill := range []Skill{Lift, Drop, Netplay, Clear, Footwork} {
-		userAction.Skill = skill
-		items = append(items, linebot.NewQuickReplyButton(
-			"",
-			linebot.NewPostbackAction(
-				skill.String(),
-				userAction.String(),
-				"",
-				skill.ChnString(),
-				"openKeyboard",
-				"",
-			),
-		))
+type ReplyAction func(userAction UserActionPostback) linebot.QuickReplyAction
+
+func (handler *LineBotHandler) getQuickReplyAction(actionType Action, skill Skill) ReplyAction {
+	var inputOption string
+	if actionType == AddReflection {
+		inputOption = "openKeyboard"
+	} else {
+		inputOption = ""
 	}
-	return linebot.NewQuickReplyItems(items...)
+
+	return func(userAction UserActionPostback) linebot.QuickReplyAction {
+		return linebot.NewPostbackAction(
+			skill.String(),
+			userAction.String(),
+			"",
+			skill.ChnString(),
+			linebot.InputOption(inputOption),
+			"",
+		)
+	}
 }
 
 func (handler *LineBotHandler) getHandednessQuickReplyItems() *linebot.QuickReplyItems {
@@ -81,54 +63,7 @@ func (handler *LineBotHandler) getHandednessQuickReplyItems() *linebot.QuickRepl
 }
 
 func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user *db.UserData, skill Skill) error {
-	actionUrls := map[db.Handedness]map[Skill][]string{
-		db.Right: {
-			Lift: []string{
-				"https://www.youtube.com/watch?v=lenLFoRFPlk&list=PLZEILcK2CNCvVRym5xnKSFGFHmD13wQhM",
-				"https://youtu.be/k9RejtgoatA",
-			},
-			Drop: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-			Netplay: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-			Clear: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-			Footwork: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-		},
-		db.Left: {
-			Lift: []string{
-				"https://youtu.be/ah9ZE9KNFpI",
-				"https://youtu.be/JKbQSG27vkk",
-			},
-			Drop: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-			Netplay: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-			Clear: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-			Footwork: []string{
-				"https://tmp.com",
-				"https://tmp.com",
-			},
-		},
-	}
-
-	urls := actionUrls[user.Handedness][skill]
+	urls := handler.getActionUrls(user.Handedness, skill)
 	if len(urls) == 0 {
 		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("請輸入正確的羽球動作")).Do()
 		return nil
@@ -158,16 +93,8 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 
 func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill) error {
 	works := user.Portfolio.GetSkillMap(skill.String())
-	if works == nil {
-		msg := "請輸入正確的羽球動作"
-		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
-		return nil
-	}
-
-	if len(works) == 0 {
-		msg := fmt.Sprintf("尚未上傳【%v】的學習反思及影片", skill.ChnString())
-		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
-		return nil
+	if works == nil || len(works) == 0 {
+		handler.replyViewPortfolioError(works, event, skill)
 	}
 
 	carousels, err := handler.getCarousels(works)
@@ -188,10 +115,29 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 	return nil
 }
 
-func ResolveUpload(event *linebot.Event, user *db.UserData, skill Skill) error {
-	return nil
+func (handler *LineBotHandler) ResolveVideoUpload(event *linebot.Event, user *db.UserData, skill Skill) error {
+	_, err := handler.bot.ReplyMessage(
+		event.ReplyToken,
+		linebot.NewTextMessage("請上傳影片").WithQuickReplies(
+			linebot.NewQuickReplyItems(
+				linebot.NewQuickReplyButton(
+					"",
+					linebot.NewCameraAction("拍攝影片"),
+				),
+				linebot.NewQuickReplyButton(
+					"",
+					linebot.NewCameraRollAction("從相簿選擇"),
+				),
+			),
+		),
+	).Do()
+	return err
 }
 
-func ResolveAddReflection(event *linebot.Event, user *db.UserData, skill Skill) error {
-	return nil
+func (handler *LineBotHandler) ResolveAddReflection(event *linebot.Event, user *db.UserData, skill Skill) error {
+	_, err := handler.bot.ReplyMessage(
+		event.ReplyToken,
+		linebot.NewTextMessage("請輸入學習反思"),
+	).Do()
+	return err
 }

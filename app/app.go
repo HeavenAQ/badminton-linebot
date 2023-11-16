@@ -71,12 +71,13 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 	for _, event := range events {
 		// get user
 		user := app.createUserIfNotExist(event.Source.UserID)
+		session := app.createUserSessionIfNotExist(event.Source.UserID)
 		app.InfoLogger.Println("User: ", user.Name, "sent event: ", event)
 
 		// handler event
 		switch event.Type {
 		case linebot.EventTypeMessage:
-			app.handleMessageEvent(event, user)
+			app.handleMessageEvent(event, user, session)
 		case linebot.EventTypePostback:
 			app.handlePostbackEvent(event, user)
 		default:
@@ -87,20 +88,26 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData) {
+func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, session *db.UserSession) {
 	replyToken := event.ReplyToken
+	if event.Message.Type() == linebot.MessageTypeVideo && session.UserState == db.UploadingVideo {
+		app.handleVideoMessage(event, user, session)
+	}
+
 	switch event.Message.(*linebot.TextMessage).Text {
-	case "使用說明": // A
+	case "使用說明":
 		app.Bot.SendInstruction(replyToken)
-	case "我的學習歷程": // B
+	case "我的學習歷程":
 		app.Bot.PromptSkillSelection(replyToken, line.ViewPortfolio, "請選擇要查看的學習歷程")
-	case "專家影片": // C
+	case "專家影片":
 		app.Bot.PromptHandednessSelection(replyToken)
-	case "上傳錄影": // D
-	// handleCourseInfo(event)
-	case "新增學習反思": // E
+	case "上傳錄影":
+		app.Bot.PromptSkillSelection(replyToken, line.Upload, "請選擇要上傳錄影的動作")
+		go app.updateUserState(user.Id, db.UploadingVideo)
+	case "新增學習反思":
 		app.Bot.PromptSkillSelection(replyToken, line.AddReflection, "請選擇要新增學習反思的動作")
-	case "課程大綱": // F
+		go app.updateUserState(user.Id, db.WritingReflection)
+	case "課程大綱":
 		app.Bot.SendSyllabus(replyToken)
 	default:
 
@@ -162,8 +169,6 @@ func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [
 
 func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, action line.UserActionPostback) error {
 	switch action.Type {
-	case line.Upload:
-		app.Bot.ResolveUpload(event, user, action.Skill)
 	case line.AddReflection:
 		app.Bot.ResolveAddReflection(event, user, action.Skill)
 	case line.ViewPortfolio:
@@ -175,6 +180,13 @@ func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, actio
 		err := app.Bot.ResolveViewExpertVideo(event, user, action.Skill)
 		if err != nil {
 			return errors.New("Error resolving view expert video: " + err.Error())
+		}
+	case line.Upload:
+		go app.updateUserState(user.Id, db.UploadingVideo)
+		go app.updateSessionUserSkill(user.Id, action.Skill)
+		err := app.Bot.ResolveVideoUpload(event, user, action.Skill)
+		if err != nil {
+			return errors.New("Error resolving upload: " + err.Error())
 		}
 	}
 	return errors.New("Invalid user action type")

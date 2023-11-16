@@ -7,7 +7,11 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-type UserSessionMap map[string]UserSession
+type FirebaseHandler struct {
+	dbClient *firestore.Client
+	ctx      context.Context
+}
+
 type UserSession struct {
 	UserState UserState `json:"userState"`
 	Skill     string    `json:"skill"`
@@ -18,12 +22,8 @@ type UserState int8
 const (
 	WritingReflection = iota
 	UploadingVideo
+	None
 )
-
-type FirebaseHandler struct {
-	dbClient *firestore.Client
-	ctx      context.Context
-}
 
 type UserMap map[string]UserData
 type UserData struct {
@@ -69,7 +69,7 @@ func (p *Portfolio) GetSkillMap(skill string) map[string]Work {
 }
 
 type Work struct {
-	Date       string `json:"date"`
+	DateTime   string `json:"date"`
 	Video      string `json:"video"`
 	Thumbnail  string `json:"thumbnail"`
 	Reflection string `json:"reflection"`
