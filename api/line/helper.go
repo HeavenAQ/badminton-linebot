@@ -148,3 +148,12 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 	}
 	return actionUrls[hand][skill]
 }
+
+func (handler *LineBotHandler) GetVideoContent(event *linebot.Event) (*linebot.MessageContentResponse, error) {
+	msg := event.Message.(*linebot.VideoMessage)
+	content, err := handler.bot.GetMessageContent(msg.ID).Do()
+	if err != nil {
+		return nil, err
+	}
+	return content, nil
+}

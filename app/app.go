@@ -33,20 +33,20 @@ func NewApp() *App {
 
 	db, err := db.NewFirebaseHandler()
 	if err != nil {
-		errorLogger.Println("Error initializing firebase database client:", err)
+		errorLogger.Println("\n\tError initializing firebase database client:", err)
 	}
 
 	bot, err := line.NewLineBotHandler()
 	if err != nil {
-		errorLogger.Println("Error initializing line bot client:", err)
+		errorLogger.Println("\n\tError initializing line bot client:", err)
 	}
 
 	drive, err := drive.NewGoogleDriveHandler()
 	if err != nil {
-		errorLogger.Println("Error initializing google drive client:", err)
+		errorLogger.Println("\n\tError initializing google drive client:", err)
 	}
 
-	infoLogger.Println("App initialized successfully.")
+	infoLogger.Println("\n\tApp initialized successfully.")
 	return &App{
 		Bot:         bot,
 		Drive:       drive,
@@ -62,17 +62,20 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 	// retrieve events
 	events, err := app.Bot.RetrieveCbEvent(w, req)
 	if err != nil {
-		app.ErrorLogger.Println("Error retrieving callback event:", err)
+		app.ErrorLogger.Println("\n\tError retrieving callback event:", err)
 		return
 	}
 
 	// handle events
-	log.Println("Handling events...")
 	for _, event := range events {
 		// get user
 		user := app.createUserIfNotExist(event.Source.UserID)
 		session := app.createUserSessionIfNotExist(event.Source.UserID)
-		app.InfoLogger.Println("User: ", user.Name, "sent event: ", event)
+		app.InfoLogger.Println(
+			"\n\tIncoming event:", event.Type,
+			"\n\t\t- User (", user.Id, ")",
+			"\n\t\t- Session: ", session,
+		)
 
 		// handler event
 		switch event.Type {
@@ -81,7 +84,7 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 		case linebot.EventTypePostback:
 			app.handlePostbackEvent(event, user)
 		default:
-			app.WarnLogger.Println("Unknown event type: ", event.Type)
+			app.WarnLogger.Println("\n\tUnknown event type: ", event.Type)
 			app.Bot.SendDefaultReply(event.ReplyToken)
 
 		}
@@ -89,14 +92,32 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 }
 
 func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, session *db.UserSession) {
-	replyToken := event.ReplyToken
-	if event.Message.Type() == linebot.MessageTypeVideo && session.UserState == db.UploadingVideo {
-		app.handleVideoMessage(event, user, session)
+	switch event.Message.(type) {
+	case *linebot.TextMessage:
+		app.handleTextMessage(event, user, session)
+	case *linebot.VideoMessage:
+		if session.UserState == db.UploadingVideo {
+			app.handleVideoMessage(event, user, session)
+		} else {
+			app.WarnLogger.Println("\n\tUnknown message type: ", event.Message.Type())
+			app.Bot.SendDefaultErrorReply(event.ReplyToken)
+		}
+	default:
+		app.WarnLogger.Println("\n\tUnknown message type: ", event.Message.Type())
+		app.Bot.SendDefaultReply(event.ReplyToken)
 	}
 
+}
+
+func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, session *db.UserSession) {
+	replyToken := event.ReplyToken
 	switch event.Message.(*linebot.TextMessage).Text {
 	case "使用說明":
-		app.Bot.SendInstruction(replyToken)
+		res, err := app.Bot.SendInstruction(replyToken)
+		if err != nil {
+			app.WarnLogger.Println("\n\tError sending instruction: ", err)
+		}
+		app.InfoLogger.Println("\n\tInstruction sent. Response from line: ", res)
 	case "我的學習歷程":
 		app.Bot.PromptSkillSelection(replyToken, line.ViewPortfolio, "請選擇要查看的學習歷程")
 	case "專家影片":
@@ -110,7 +131,17 @@ func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, sess
 	case "課程大綱":
 		app.Bot.SendSyllabus(replyToken)
 	default:
-
+		isWritingReflection := session.UserState == db.WritingReflection
+		if isWritingReflection {
+			err := app.updateUserReflection(event, user, session)
+			if err != nil {
+				app.WarnLogger.Println("\n\tError updating user reflection:", err)
+				app.Bot.SendDefaultErrorReply(replyToken)
+			}
+			app.resetUserSession(user.Id)
+		} else {
+			app.Bot.SendDefaultReply(replyToken)
+		}
 	}
 }
 
@@ -123,7 +154,7 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData) {
 	}
 
 	if len(data) == 0 {
-		app.WarnLogger.Println("Empty postback data")
+		app.WarnLogger.Println("\n\tEmpty postback data")
 	} else if data[0][0] == "handedness" {
 		app.handleHandednessReply(replyToken, user, data[0][1])
 	} else {
@@ -134,7 +165,7 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData) {
 func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data string) {
 	handedness, err := db.HandednessStrToEnum(data)
 	if err != nil {
-		app.WarnLogger.Println("Invalid handedness data")
+		app.WarnLogger.Println("\n\tInvalid handedness data")
 		app.Bot.SendWrongHandednessReply(replyToken)
 		return
 	}
@@ -142,7 +173,7 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 	if user.Handedness != handedness {
 		err = app.Db.UpdateUserHandedness(user, handedness)
 		if err != nil {
-			app.WarnLogger.Println("Error updating user handedness:", err)
+			app.WarnLogger.Println("\n\tError updating user handedness:", err)
 			app.Bot.SendDefaultErrorReply(replyToken)
 			return
 		}
@@ -155,13 +186,13 @@ func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [
 	var userAction line.UserActionPostback
 	err := userAction.FromArray(data)
 	if err != nil {
-		app.WarnLogger.Println("Invalid postback data")
+		app.WarnLogger.Println("\n\tInvalid postback data")
 		app.Bot.SendDefaultErrorReply(replyToken)
 		return
 	}
 	err = app.ResolveUserAction(event, user, userAction)
 	if err != nil {
-		app.ErrorLogger.Println("Error resolving user action:", err)
+		app.ErrorLogger.Println("\n\tError resolving user action:", err)
 		app.Bot.SendDefaultErrorReply(replyToken)
 		return
 	}
@@ -170,24 +201,34 @@ func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [
 func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, action line.UserActionPostback) error {
 	switch action.Type {
 	case line.AddReflection:
+		newSession := db.UserSession{
+			UserState: db.WritingReflection,
+			Skill:     action.Skill.String(),
+		}
+		go app.Db.UpdateUserSession(user.Id, newSession)
 		app.Bot.ResolveAddReflection(event, user, action.Skill)
 	case line.ViewPortfolio:
 		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill)
 		if err != nil {
-			return errors.New("Error resolving view portfolio: " + err.Error())
+			return errors.New("\n\tError resolving view portfolio: " + err.Error())
 		}
 	case line.ViewExpertVideo:
 		err := app.Bot.ResolveViewExpertVideo(event, user, action.Skill)
 		if err != nil {
-			return errors.New("Error resolving view expert video: " + err.Error())
+			return errors.New("\n\tError resolving view expert video: " + err.Error())
 		}
 	case line.Upload:
-		go app.updateUserState(user.Id, db.UploadingVideo)
-		go app.updateSessionUserSkill(user.Id, action.Skill)
+		newSession := db.UserSession{
+			UserState: db.UploadingVideo,
+			Skill:     action.Skill.String(),
+		}
+		go app.Db.UpdateUserSession(user.Id, newSession)
 		err := app.Bot.ResolveVideoUpload(event, user, action.Skill)
 		if err != nil {
-			return errors.New("Error resolving upload: " + err.Error())
+			return errors.New("\n\tError resolving upload: " + err.Error())
 		}
+	default:
+		return errors.New("\n\tInvalid user action type")
 	}
-	return errors.New("Invalid user action type")
+	return nil
 }

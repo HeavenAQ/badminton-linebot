@@ -1,7 +1,6 @@
 package line
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -24,7 +23,6 @@ func NewLineBotHandler() (*LineBotHandler, error) {
 func (handler *LineBotHandler) RetrieveCbEvent(w http.ResponseWriter, req *http.Request) ([]*linebot.Event, error) {
 	cb, err := handler.bot.ParseRequest(req)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(400)
 		return nil, err
 	}

@@ -18,11 +18,11 @@ type enum interface {
 type Skill int8
 
 const (
-	Lift Skill = iota
-	Drop
-	Netplay
-	Clear
-	Footwork
+	Lift     Skill = iota
+	Drop           = iota
+	Netplay        = iota
+	Clear          = iota
+	Footwork       = iota
 )
 
 func (s Skill) String() string {
@@ -53,10 +53,10 @@ func SkillStrToEnum(str string) Skill {
 type Action int8
 
 const (
-	Upload Action = iota
-	AddReflection
-	ViewPortfolio
-	ViewExpertVideo
+	Upload          Action = iota
+	AddReflection          = iota
+	ViewPortfolio          = iota
+	ViewExpertVideo        = iota
 )
 
 func (a Action) String() string {

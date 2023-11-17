@@ -55,10 +55,17 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 	}
 
 	for _, folderName := range folderNames {
+		var parents []string
+		if folderName == userId {
+			parents = []string{handler.RootFolderID}
+		} else {
+			parents = []string{userFolders.RootFolderId}
+		}
+
 		folder, err := handler.srv.Files.Create(&drive.File{
 			Name:     folderName,
 			MimeType: "application/vnd.google-apps.folder",
-			Parents:  []string{handler.RootFolderID},
+			Parents:  parents,
 		}).Do()
 		if err != nil {
 			return nil, err

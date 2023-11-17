@@ -34,10 +34,10 @@ func (handler *LineBotHandler) getQuickReplyAction(actionType Action, skill Skil
 
 	return func(userAction UserActionPostback) linebot.QuickReplyAction {
 		return linebot.NewPostbackAction(
-			skill.String(),
+			userAction.Skill.ChnString(),
 			userAction.String(),
 			"",
-			skill.ChnString(),
+			userAction.Skill.ChnString(),
 			linebot.InputOption(inputOption),
 			"",
 		)
@@ -50,7 +50,7 @@ func (handler *LineBotHandler) getHandednessQuickReplyItems() *linebot.QuickRepl
 		linebot.NewQuickReplyButton(
 			"",
 			linebot.NewPostbackAction(
-				handedness.String(),
+				handedness.ChnString(),
 				handedness.String(),
 				"",
 				handedness.ChnString(),
@@ -137,7 +137,7 @@ func (handler *LineBotHandler) ResolveVideoUpload(event *linebot.Event, user *db
 func (handler *LineBotHandler) ResolveAddReflection(event *linebot.Event, user *db.UserData, skill Skill) error {
 	_, err := handler.bot.ReplyMessage(
 		event.ReplyToken,
-		linebot.NewTextMessage("請輸入學習反思"),
+		linebot.NewTextMessage("請輸入【"+skill.ChnString()+"】的學習反思"),
 	).Do()
 	return err
 }

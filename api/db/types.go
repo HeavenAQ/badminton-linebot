@@ -25,7 +25,6 @@ const (
 	None
 )
 
-type UserMap map[string]UserData
 type UserData struct {
 	Name       string     `json:"name"`
 	Handedness Handedness `json:"handedness"`

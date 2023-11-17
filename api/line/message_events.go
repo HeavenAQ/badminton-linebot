@@ -4,19 +4,36 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func (handler *LineBotHandler) SendDefaultReply(replyToken string) {
-	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: "請點選選單的項目"})
+func (handler *LineBotHandler) SendDefaultReply(replyToken string) (*linebot.BasicResponse, error) {
+	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage("請點選選單的項目")).Do()
 }
 
-func (handler *LineBotHandler) SendDefaultErrorReply(replyToken string) {
-	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: "發生錯誤，請重新操作"})
+func (handler *LineBotHandler) SendReflectionUpdatedReply(replyToken string) (*linebot.BasicResponse, error) {
+	return handler.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage("已成功更新個人學習反思!"),
+	).Do()
 }
 
-func (handler *LineBotHandler) SendWrongHandednessReply(replyToken string) {
-	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: "請選擇左手或右手"})
+func (handler *LineBotHandler) SendDefaultErrorReply(replyToken string) (*linebot.BasicResponse, error) {
+	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage("發生錯誤，請重新操作")).Do()
 }
 
-func (handler *LineBotHandler) SendInstruction(replyToken string) {
+func (handler *LineBotHandler) SendWrongHandednessReply(replyToken string) (*linebot.BasicResponse, error) {
+	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage("請選擇左手或右手")).Do()
+}
+
+func (handler *LineBotHandler) SendVideoUploadedReply(replyToken string, skill string, videoFolder string) (*linebot.BasicResponse, error) {
+	s := SkillStrToEnum(skill)
+	skillFolder := "https://drive.google.com/drive/u/0/folders/" + videoFolder
+	return handler.bot.ReplyMessage(
+		replyToken,
+		linebot.NewTextMessage("已成功上傳影片!"),
+		linebot.NewTextMessage("以下為【"+s.ChnString()+"】的影片資料夾：\n"+skillFolder),
+	).Do()
+}
+
+func (handler *LineBotHandler) SendInstruction(replyToken string) (*linebot.BasicResponse, error) {
 	const welcome = "歡迎加入羽球教室🏸，以下為選單的使用說明:\n\n"
 	const instruction = "➡️ 使用說明：呼叫選單各個項目的解說\n\n"
 	const portfolio = "➡️ 我的學習歷程：查看個人每周的學習歷程記錄\n\n"
@@ -26,25 +43,25 @@ func (handler *LineBotHandler) SendInstruction(replyToken string) {
 	const syllabus = "➡️ 課程大綱：查看課程大綱\n\n"
 	const note = "⚠️ 每周的學習歷程都需要當週的【影片】以及【學習反思】才能建檔"
 	const msg = welcome + instruction + portfolio + expertVideo + uploadRecording + addPortfolio + syllabus + note
-	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: msg})
+	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
 
-func (handler *LineBotHandler) SendSyllabus(replyToken string) {
-	const syllabus = "課程大綱\n\n"
+func (handler *LineBotHandler) SendSyllabus(replyToken string) (*linebot.BasicResponse, error) {
+	const syllabus = "課程大綱：\n"
 	const msg = syllabus + "https://test.com"
-	handler.bot.ReplyMessage(replyToken, &linebot.TextMessage{Text: msg})
+	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
 
-func (handler *LineBotHandler) PromptSkillSelection(replyToken string, action Action, prompt string) {
+func (handler *LineBotHandler) PromptSkillSelection(replyToken string, action Action, prompt string) (*linebot.BasicResponse, error) {
 	msg := linebot.NewTextMessage(prompt).WithQuickReplies(
 		handler.getSkillQuickReplyItems(action),
 	)
-	handler.bot.ReplyMessage(replyToken, msg)
+	return handler.bot.ReplyMessage(replyToken, msg).Do()
 }
 
-func (handler *LineBotHandler) PromptHandednessSelection(replyToken string) {
+func (handler *LineBotHandler) PromptHandednessSelection(replyToken string) (*linebot.BasicResponse, error) {
 	msg := linebot.NewTextMessage("請選擇左手或右手").WithQuickReplies(
 		handler.getHandednessQuickReplyItems(),
 	)
-	handler.bot.ReplyMessage(replyToken, msg)
+	return handler.bot.ReplyMessage(replyToken, msg).Do()
 }

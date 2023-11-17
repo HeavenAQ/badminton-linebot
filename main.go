@@ -17,6 +17,7 @@ func main() {
 	app := app.NewApp()
 	http.HandleFunc("/callback", app.HandleCallback)
 
+	app.InfoLogger.Println("\n\tServer started on port 3000: http://localhost:3000")
 	if err := http.ListenAndServe(":"+"3000", nil); err != nil {
 		log.Fatal(err)
 	}

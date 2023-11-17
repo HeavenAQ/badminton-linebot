@@ -7,7 +7,7 @@ import (
 )
 
 func (handler *FirebaseHandler) GetSessionCollection() *firestore.CollectionRef {
-	collection := os.Getenv("FIREBASE_SESSION")
+	collection := os.Getenv("FIREBASE_SESSIONS")
 	return handler.dbClient.Collection(collection)
 }
 
@@ -26,14 +26,14 @@ func (handler *FirebaseHandler) NewUserSession(userId string) (*UserSession, err
 		UserState: None,
 		Skill:     "",
 	}
-	err := handler.updateUserSession(userId, newSession)
+	err := handler.UpdateUserSession(userId, newSession)
 	if err != nil {
 		return nil, err
 	}
 	return &newSession, nil
 }
 
-func (handler *FirebaseHandler) updateUserSession(userId string, userSession UserSession) error {
+func (handler *FirebaseHandler) UpdateUserSession(userId string, userSession UserSession) error {
 	_, err := handler.GetSessionCollection().Doc(userId).Set(handler.ctx, userSession)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (handler *FirebaseHandler) UpdateSessionUserState(userId string, state User
 		return err
 	}
 	userSession.UserState = state
-	return handler.updateUserSession(userId, *userSession)
+	return handler.UpdateUserSession(userId, *userSession)
 }
 
 func (handler *FirebaseHandler) UpdateSessionUserSkill(userId string, skill string) error {
@@ -56,5 +56,5 @@ func (handler *FirebaseHandler) UpdateSessionUserSkill(userId string, skill stri
 		return err
 	}
 	userSession.Skill = skill
-	return handler.updateUserSession(userId, *userSession)
+	return handler.UpdateUserSession(userId, *userSession)
 }
