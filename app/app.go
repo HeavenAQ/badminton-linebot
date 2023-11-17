@@ -121,7 +121,10 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 	case "我的學習歷程":
 		app.Bot.PromptSkillSelection(replyToken, line.ViewPortfolio, "請選擇要查看的學習歷程")
 	case "專家影片":
-		app.Bot.PromptHandednessSelection(replyToken)
+		_, err := app.Bot.PromptHandednessSelection(replyToken)
+		if err != nil {
+			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
+		}
 	case "上傳錄影":
 		app.Bot.PromptSkillSelection(replyToken, line.Upload, "請選擇要上傳錄影的動作")
 		go app.updateUserState(user.Id, db.UploadingVideo)
@@ -184,6 +187,7 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [2][2]string) {
 	replyToken := event.ReplyToken
 	var userAction line.UserActionPostback
+	log.Println("postback data", data)
 	err := userAction.FromArray(data)
 	if err != nil {
 		app.WarnLogger.Println("\n\tInvalid postback data")

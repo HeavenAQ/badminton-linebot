@@ -47,17 +47,17 @@ func (handler *LineBotHandler) getQuickReplyAction(actionType Action, skill Skil
 func (handler *LineBotHandler) getHandednessQuickReplyItems() *linebot.QuickReplyItems {
 	items := []*linebot.QuickReplyButton{}
 	for _, handedness := range []db.Handedness{db.Left, db.Right} {
-		linebot.NewQuickReplyButton(
+		items = append(items, linebot.NewQuickReplyButton(
 			"",
 			linebot.NewPostbackAction(
 				handedness.ChnString(),
-				handedness.String(),
+				"handedness="+handedness.String(),
 				"",
 				handedness.ChnString(),
 				"",
 				"",
 			),
-		)
+		))
 	}
 	return linebot.NewQuickReplyItems(items...)
 }
