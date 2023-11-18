@@ -149,6 +149,7 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 }
 
 func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData) {
+	app.InfoLogger.Println("\n\tPostback event:", event.Postback.Data)
 	replyToken := event.ReplyToken
 	tmp := strings.Split(event.Postback.Data, "&")
 	var data [2][2]string
@@ -187,7 +188,6 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [2][2]string) {
 	replyToken := event.ReplyToken
 	var userAction line.UserActionPostback
-	log.Println("postback data", data)
 	err := userAction.FromArray(data)
 	if err != nil {
 		app.WarnLogger.Println("\n\tInvalid postback data")
@@ -205,11 +205,12 @@ func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [
 func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, action line.UserActionPostback) error {
 	switch action.Type {
 	case line.AddReflection:
-		newSession := db.UserSession{
+		// update user session
+		go app.Db.UpdateUserSession(user.Id, db.UserSession{
 			UserState: db.WritingReflection,
 			Skill:     action.Skill.String(),
-		}
-		go app.Db.UpdateUserSession(user.Id, newSession)
+		})
+
 		app.Bot.ResolveAddReflection(event, user, action.Skill)
 	case line.ViewPortfolio:
 		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill)
@@ -222,11 +223,12 @@ func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, actio
 			return errors.New("\n\tError resolving view expert video: " + err.Error())
 		}
 	case line.Upload:
-		newSession := db.UserSession{
+		// update user session
+		go app.Db.UpdateUserSession(user.Id, db.UserSession{
 			UserState: db.UploadingVideo,
 			Skill:     action.Skill.String(),
-		}
-		go app.Db.UpdateUserSession(user.Id, newSession)
+		})
+
 		err := app.Bot.ResolveVideoUpload(event, user, action.Skill)
 		if err != nil {
 			return errors.New("\n\tError resolving upload: " + err.Error())

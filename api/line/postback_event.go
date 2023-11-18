@@ -1,6 +1,7 @@
 package line
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/HeavenAQ/api/db"
@@ -92,14 +93,25 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 }
 
 func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill) error {
-	works := user.Portfolio.GetSkillMap(skill.String())
+	// get works from user portfolio
+	works := user.Portfolio.GetSkillPortfolio(skill.String())
 	if works == nil || len(works) == 0 {
-		handler.replyViewPortfolioError(works, event, skill)
+		var msg string
+		if works == nil {
+			msg = "請輸入正確的羽球動作"
+		} else {
+			msg = fmt.Sprintf("尚未上傳【%v】的學習反思及影片", skill.ChnString())
+		}
+
+		// reply user with error messages
+		handler.replyViewPortfolioError(works, event, msg)
 	}
 
+	// generate carousels from works
 	carousels, err := handler.getCarousels(works)
 	if err != nil {
-		return err
+		handler.replyViewPortfolioError(works, event, err.Error())
+		return errors.New("\n\tError getting carousels: " + err.Error())
 	}
 
 	// turn carousels into sending messages

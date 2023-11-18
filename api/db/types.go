@@ -50,7 +50,7 @@ type Portfolio struct {
 	Footwork map[string]Work `json:"footwork"`
 }
 
-func (p *Portfolio) GetSkillMap(skill string) map[string]Work {
+func (p *Portfolio) GetSkillPortfolio(skill string) map[string]Work {
 	switch skill {
 	case "lift":
 		return p.Lift

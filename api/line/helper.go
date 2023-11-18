@@ -2,7 +2,6 @@ package line
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -55,6 +54,18 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleCont
 	}
 }
 
+func (handler *LineBotHandler) insertCarousel(carouselItems []*linebot.FlexMessage, items []*linebot.BubbleContainer) []*linebot.FlexMessage {
+	return append(carouselItems,
+		linebot.NewFlexMessage("portfolio",
+			&linebot.CarouselContainer{
+				Type:     "carousel",
+				Contents: items,
+			},
+		),
+	)
+
+}
+
 func (handler *LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebot.FlexMessage, error) {
 	items := []*linebot.BubbleContainer{}
 	carouselItems := []*linebot.FlexMessage{}
@@ -70,31 +81,20 @@ func (handler *LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebo
 
 		// since the carousel can only contain 10 items, we need to split the works into multiple carousels in order to display all of them
 		if len(items) == 10 {
-			carouselItems = append(carouselItems,
-				linebot.NewFlexMessage("portfolio",
-					&linebot.CarouselContainer{
-						Type:     "carousel",
-						Contents: items,
-					},
-				),
-			)
+			carouselItems = handler.insertCarousel(carouselItems, items)
 			items = []*linebot.BubbleContainer{}
 		}
 	}
+
+	// insert the last carousel
+	carouselItems = handler.insertCarousel(carouselItems, items)
 	return carouselItems, nil
 }
 
-func (handler *LineBotHandler) replyViewPortfolioError(works map[string]db.Work, event *linebot.Event, skill Skill) error {
-	if works == nil {
-		msg := "請輸入正確的羽球動作"
-		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
-		return nil
-	}
-
-	if len(works) == 0 {
-		msg := fmt.Sprintf("尚未上傳【%v】的學習反思及影片", skill.ChnString())
-		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
-		return nil
+func (handler *LineBotHandler) replyViewPortfolioError(works map[string]db.Work, event *linebot.Event, msg string) error {
+	_, err := handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+	if err != nil {
+		return err
 	}
 	return nil
 }
