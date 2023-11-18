@@ -66,13 +66,13 @@ func (handler *LineBotHandler) insertCarousel(carouselItems []*linebot.FlexMessa
 
 }
 
-func (handler *LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebot.FlexMessage, error) {
+func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skill) ([]*linebot.FlexMessage, error) {
 	items := []*linebot.BubbleContainer{}
 	carouselItems := []*linebot.FlexMessage{}
 	for _, work := range works {
 		// if no video or reflection, return error
 		if work.Video == "" {
-			return nil, errors.New("請上傳" + work.DateTime + "的學習錄影")
+			return nil, errors.New("請上傳【" + skill.ChnString() + "】的學習錄影")
 		} else if work.Reflection == "" {
 			return nil, errors.New("請輸入" + work.DateTime + "的學習反思")
 		}
