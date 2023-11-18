@@ -23,6 +23,17 @@ func (handler *LineBotHandler) SendWrongHandednessReply(replyToken string) (*lin
 	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage("請選擇左手或右手")).Do()
 }
 
+func (handler *LineBotHandler) SendWelcomeReply(event *linebot.Event) (*linebot.BasicResponse, error) {
+	username, err := handler.GetUserName(event.Source.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return handler.bot.ReplyMessage(
+		event.ReplyToken,
+		linebot.NewTextMessage("Hi "+username+"! 歡迎加入羽球教室🏸\n"+"已建立您的使用者資料🎉🎊 請點選選單的項目開始使用"),
+	).Do()
+}
+
 func (handler *LineBotHandler) SendVideoUploadedReply(replyToken string, skill string, videoFolder string) (*linebot.BasicResponse, error) {
 	s := SkillStrToEnum(skill)
 	skillFolder := "https://drive.google.com/drive/u/0/folders/" + videoFolder

@@ -79,6 +79,8 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 
 		// handler event
 		switch event.Type {
+		case linebot.EventTypeFollow:
+			app.Bot.SendWelcomeReply(event)
 		case linebot.EventTypeMessage:
 			app.handleMessageEvent(event, user, session)
 		case linebot.EventTypePostback:
