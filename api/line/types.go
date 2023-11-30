@@ -103,3 +103,10 @@ func (user *UserActionPostback) FromArray(arr [2][2]string) error {
 	}
 	return nil
 }
+
+type CarouselBtn int8
+
+const (
+	VideoLink CarouselBtn = iota
+	VideoDate
+)

@@ -60,13 +60,12 @@ func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness 
 	return handler.updateUserData(user)
 }
 
-func (handler *FirebaseHandler) UpdateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File) error {
+func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File) error {
 	id := driveFile.Id
-	date := time.Now().Format("2006-01-02")
-	targetWork := (*userPortfolio)[date]
+	date := time.Now().Format("2006-01-02-15-04")
 	work := Work{
 		DateTime:   driveFile.Name,
-		Reflection: targetWork.Reflection,
+		Reflection: "尚未填寫心得",
 		Thumbnail:  "https://drive.google.com/thumbnail?id=" + id,
 		Video:      "https://drive.google.com/file/d/" + id + "/view?usp=drive_link",
 	}
@@ -75,16 +74,15 @@ func (handler *FirebaseHandler) UpdateUserPortfolioVideo(user *UserData, userPor
 	return handler.updateUserData(user)
 }
 
-func (handler *FirebaseHandler) UpdateuserPortfolioReflection(user *UserData, userPortfolio *map[string]Work, session *UserSession, reflection string) error {
-	date := time.Now().Format("2006-01-02")
-	targetWork := (*userPortfolio)[date]
+func (handler *FirebaseHandler) UpdateUserPortfolioReflection(user *UserData, userPortfolio *map[string]Work, session *UserSession, reflection string) error {
+	targetWork := (*userPortfolio)[session.UpdatingDate]
 	work := Work{
 		DateTime:   targetWork.DateTime,
 		Reflection: reflection,
 		Video:      targetWork.Video,
 		Thumbnail:  targetWork.Thumbnail,
 	}
-	(*userPortfolio)[date] = work
+	(*userPortfolio)[session.UpdatingDate] = work
 
 	err := handler.UpdateUserSession(user.Id, *session)
 	if err != nil {

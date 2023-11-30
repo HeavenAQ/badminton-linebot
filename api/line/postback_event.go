@@ -26,20 +26,13 @@ func (handler *LineBotHandler) getSkillQuickReplyItems(actionType Action) *lineb
 type ReplyAction func(userAction UserActionPostback) linebot.QuickReplyAction
 
 func (handler *LineBotHandler) getQuickReplyAction(actionType Action, skill Skill) ReplyAction {
-	var inputOption string
-	if actionType == AddReflection {
-		inputOption = "openKeyboard"
-	} else {
-		inputOption = ""
-	}
-
 	return func(userAction UserActionPostback) linebot.QuickReplyAction {
 		return linebot.NewPostbackAction(
 			userAction.Skill.ChnString(),
 			userAction.String(),
 			"",
 			userAction.Skill.ChnString(),
-			linebot.InputOption(inputOption),
+			linebot.InputOption(""),
 			"",
 		)
 	}
@@ -92,7 +85,7 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 	return nil
 }
 
-func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill) error {
+func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill, carouselBtn CarouselBtn) error {
 	// get works from user portfolio
 	works := user.Portfolio.GetSkillPortfolio(skill.String())
 	if works == nil || len(works) == 0 {
@@ -108,7 +101,7 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 	}
 
 	// generate carousels from works
-	carousels, err := handler.getCarousels(works, skill)
+	carousels, err := handler.getCarousels(works, skill, carouselBtn)
 	if err != nil {
 		handler.replyViewPortfolioError(works, event, err.Error())
 		return errors.New("\n\tError getting carousels: " + err.Error())
@@ -146,10 +139,13 @@ func (handler *LineBotHandler) ResolveVideoUpload(event *linebot.Event, user *db
 	return err
 }
 
-func (handler *LineBotHandler) ResolveAddReflection(event *linebot.Event, user *db.UserData, skill Skill) error {
+func (handler *LineBotHandler) ResolveAddReflection(event *linebot.Event, user *db.UserData, skill Skill, date string) error {
 	_, err := handler.bot.ReplyMessage(
 		event.ReplyToken,
-		linebot.NewTextMessage("請輸入【"+skill.ChnString()+"】的學習反思"),
+		linebot.NewTextMessage("請輸入【"+date+"】的【"+skill.ChnString()+"】的學習反思"),
 	).Do()
+	if err != nil {
+		return errors.New("\n\tError resolving view portfolio: " + err.Error())
+	}
 	return err
 }

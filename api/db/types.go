@@ -13,8 +13,9 @@ type FirebaseHandler struct {
 }
 
 type UserSession struct {
-	UserState UserState `json:"userState"`
-	Skill     string    `json:"skill"`
+	UserState    UserState `json:"userState"`
+	Skill        string    `json:"skill"`
+	UpdatingDate string    `json:"updatingDate"`
 }
 
 type UserState int8

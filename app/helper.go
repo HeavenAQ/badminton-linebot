@@ -122,7 +122,7 @@ func (app *App) getUserPortfolio(user *db.UserData, skill string) *map[string]db
 func (app *App) updateUserReflection(event *linebot.Event, user *db.UserData, session *db.UserSession) error {
 	userPortfolio := app.getUserPortfolio(user, session.Skill)
 	reflection := event.Message.(*linebot.TextMessage).Text
-	err := app.Db.UpdateuserPortfolioReflection(user, userPortfolio, session, reflection)
+	err := app.Db.UpdateUserPortfolioReflection(user, userPortfolio, session, reflection)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (app *App) handleVideoMessage(event *linebot.Event, user *db.UserData, sess
 
 	// update user portfolio
 	userPortfolio := app.getUserPortfolio(user, session.Skill)
-	err = app.Db.UpdateUserPortfolioVideo(user, userPortfolio, session, driveFile)
+	err = app.Db.CreateUserPortfolioVideo(user, userPortfolio, session, driveFile)
 	if err != nil {
 		app.WarnLogger.Println("\n\tError updating user portfolio after uploading video:", err)
 		app.Bot.SendDefaultErrorReply(replyToken)

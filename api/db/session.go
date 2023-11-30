@@ -23,8 +23,9 @@ func (handler *FirebaseHandler) GetUserSession(userId string) (*UserSession, err
 
 func (handler *FirebaseHandler) NewUserSession(userId string) (*UserSession, error) {
 	newSession := UserSession{
-		UserState: None,
-		Skill:     "",
+		UserState:    None,
+		UpdatingDate: "",
+		Skill:        "",
 	}
 	err := handler.UpdateUserSession(userId, newSession)
 	if err != nil {

@@ -84,7 +84,7 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 		case linebot.EventTypeMessage:
 			app.handleMessageEvent(event, user, session)
 		case linebot.EventTypePostback:
-			app.handlePostbackEvent(event, user)
+			app.handlePostbackEvent(event, user, session)
 		default:
 			app.WarnLogger.Println("\n\tUnknown event type: ", event.Type)
 			app.Bot.SendDefaultReply(event.ReplyToken)
@@ -149,7 +149,7 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 	}
 }
 
-func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData) {
+func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData, session *db.UserSession) {
 	app.InfoLogger.Println("\n\tPostback event:", event.Postback.Data)
 	replyToken := event.ReplyToken
 	tmp := strings.Split(event.Postback.Data, "&")
@@ -162,6 +162,13 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData) {
 		app.WarnLogger.Println("\n\tEmpty postback data")
 	} else if data[0][0] == "handedness" {
 		app.handleHandednessReply(replyToken, user, data[0][1])
+	} else if data[1][0] == "date" {
+		app.Db.UpdateUserSession(user.Id, db.UserSession{
+			UserState:    session.UserState,
+			UpdatingDate: data[1][1],
+			Skill:        session.Skill,
+		})
+		app.Bot.ResolveAddReflection(event, user, line.SkillStrToEnum(session.Skill), data[1][1])
 	} else {
 		app.handleUserAction(event, user, data)
 	}
@@ -212,9 +219,12 @@ func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, actio
 			Skill:     action.Skill.String(),
 		})
 
-		app.Bot.ResolveAddReflection(event, user, action.Skill)
+		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill, line.VideoDate)
+		if err != nil {
+			return errors.New("\n\tError resolving view portfolio: " + err.Error())
+		}
 	case line.ViewPortfolio:
-		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill)
+		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill, line.VideoLink)
 		if err != nil {
 			return errors.New("\n\tError resolving view portfolio: " + err.Error())
 		}

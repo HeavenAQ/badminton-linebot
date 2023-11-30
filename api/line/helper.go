@@ -1,13 +1,18 @@
 package line
 
 import (
-	"errors"
-
 	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func (handler *LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleContainer {
+func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn) *linebot.BubbleContainer {
+	var btnAction linebot.TemplateAction
+	if btnType == VideoLink {
+		btnAction = linebot.NewURIAction("觀看影片", work.Video)
+	} else if btnType == VideoDate {
+		btnAction = linebot.NewPostbackAction("更新心得", "type=update_reflection&date="+work.DateTime, "", "", "openKeyboard", "")
+	}
+
 	return &linebot.BubbleContainer{
 		Type: "bubble",
 		Header: &linebot.BoxComponent{
@@ -18,7 +23,7 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleCont
 					Type:   "text",
 					Weight: "bold",
 					Size:   "xl",
-					Text:   work.DateTime,
+					Text:   "日期：" + work.DateTime[:10],
 				},
 			},
 		},
@@ -47,7 +52,7 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleCont
 				&linebot.ButtonComponent{
 					Type:   "button",
 					Style:  "primary",
-					Action: linebot.NewURIAction("觀看影片", work.Video),
+					Action: btnAction,
 				},
 			},
 		},
@@ -66,18 +71,11 @@ func (handler *LineBotHandler) insertCarousel(carouselItems []*linebot.FlexMessa
 
 }
 
-func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skill) ([]*linebot.FlexMessage, error) {
+func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skill, carouselBtn CarouselBtn) ([]*linebot.FlexMessage, error) {
 	items := []*linebot.BubbleContainer{}
 	carouselItems := []*linebot.FlexMessage{}
 	for _, work := range works {
-		// if no video or reflection, return error
-		if work.Video == "" {
-			return nil, errors.New("請上傳【" + skill.ChnString() + "】的學習錄影")
-		} else if work.Reflection == "" {
-			return nil, errors.New("請輸入" + work.DateTime + "的學習反思")
-		}
-
-		items = append(items, handler.getCarouselItem(work))
+		items = append(items, handler.getCarouselItem(work, carouselBtn))
 
 		// since the carousel can only contain 10 items, we need to split the works into multiple carousels in order to display all of them
 		if len(items) == 10 {
