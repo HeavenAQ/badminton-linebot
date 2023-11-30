@@ -12,6 +12,7 @@ func (app *App) createUser(userId string) *db.UserData {
 	username, err := app.Bot.GetUserName(userId)
 	if err != nil {
 		app.ErrorLogger.Println("\n\tError getting new user's name:", err)
+
 	}
 	userFolders, err := app.Drive.CreateUserFolders(userId, username)
 	if err != nil {
