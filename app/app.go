@@ -108,7 +108,6 @@ func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, sess
 		app.WarnLogger.Println("\n\tUnknown message type: ", event.Message.Type())
 		app.Bot.SendDefaultReply(event.ReplyToken)
 	}
-
 }
 
 func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, session *db.UserSession) {

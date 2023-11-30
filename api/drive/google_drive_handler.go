@@ -2,41 +2,59 @@ package drive
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
 
 func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 	ctx := context.Background()
-	config := &oauth2.Config{
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
-		Scopes:       []string{drive.DriveScope},
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://accounts.google.com/o/oauth2/auth",
-			TokenURL: "https://accounts.google.com/o/oauth2/token",
-		},
-	}
-
-	tokenSource := config.TokenSource(ctx, &oauth2.Token{RefreshToken: os.Getenv("GOOGLE_REFRESH_TOKEN")})
-	client := oauth2.NewClient(ctx, tokenSource)
-	srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
+	srv, err := drive.NewService(ctx, option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS")))
 	if err != nil {
 		return nil, err
 	}
 
 	return &GoogleDriveHandler{
-		tokenSource,
-		client,
 		srv,
 		os.Getenv("GOOGLE_ROOT_FOLDER_ID"),
 	}, nil
+}
+
+func getConfigFromJSON() *oauth2.Config {
+	b, err := os.ReadFile(os.Getenv("GOOGLE_CREDENTIALS"))
+	if err != nil {
+		log.Fatalf("Unable to read client secret file: %v", err)
+	}
+	config, err := google.ConfigFromJSON(b, drive.DriveScope)
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+	return config
+}
+
+func getClient(config *oauth2.Config, ctx *context.Context) *http.Client {
+	url := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+	fmt.Printf("Visit the URL for the auth dialog: %v", url)
+
+	var code string
+	if _, err := fmt.Scan(&code); err != nil {
+		log.Fatalf("Unable to read authorization code %v", err)
+	}
+
+	token, err := config.Exchange(*ctx, code)
+	if err != nil {
+		log.Fatalf("Unable to retrieve token from web %v", err)
+	}
+
+	return config.Client(*ctx, token)
 }
 
 func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName string) (*UserFolders, error) {
