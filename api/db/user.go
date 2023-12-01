@@ -78,10 +78,11 @@ func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPor
 func (handler *FirebaseHandler) UpdateUserPortfolioReflection(user *UserData, userPortfolio *map[string]Work, session *UserSession, reflection string) error {
 	targetWork := (*userPortfolio)[session.UpdatingDate]
 	work := Work{
-		DateTime:   targetWork.DateTime,
-		Reflection: reflection,
-		RawVideo:   targetWork.RawVideo,
-		Thumbnail:  targetWork.Thumbnail,
+		DateTime:    targetWork.DateTime,
+		Reflection:  reflection,
+		PreviewNote: targetWork.PreviewNote,
+		RawVideo:    targetWork.RawVideo,
+		Thumbnail:   targetWork.Thumbnail,
 	}
 	(*userPortfolio)[session.UpdatingDate] = work
 

@@ -15,61 +15,96 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn
 
 	return &linebot.BubbleContainer{
 		Type: "bubble",
-		Header: &linebot.BoxComponent{
+		Hero: &linebot.ImageComponent{
+			Type:        "image",
+			URL:         work.Thumbnail,
+			Size:        "full",
+			AspectRatio: "20:13",
+			AspectMode:  "cover",
+		},
+		Body: &linebot.BoxComponent{
 			Type:   "box",
 			Layout: "vertical",
 			Contents: []linebot.FlexComponent{
 				&linebot.TextComponent{
 					Type:   "text",
+					Text:   "🗓️ " + work.DateTime[:10],
 					Weight: "bold",
 					Size:   "xl",
-					Text:   "日期：" + work.DateTime[:10],
 				},
-			},
-		},
-		Hero: &linebot.ImageComponent{
-			Type:        "image",
-			URL:         work.Thumbnail,
-			Size:        "full",
-			AspectRatio: "2:1",
-		},
-		Body: &linebot.BoxComponent{
-			Type:   "box",
-			Layout: "horizontal",
-			Contents: []linebot.FlexComponent{
-				&linebot.TextComponent{
-					Type: "text",
-					Size: "lg",
-					Text: "課前動作檢測要點：",
-					Wrap: true,
+				&linebot.BoxComponent{
+					Type:    "box",
+					Layout:  "vertical",
+					Margin:  "lg",
+					Spacing: "sm",
+					Contents: []linebot.FlexComponent{
+						&linebot.BoxComponent{
+							Type:    "box",
+							Layout:  "vertical",
+							Spacing: "sm",
+							Contents: []linebot.FlexComponent{
+								&linebot.TextComponent{
+									Type:   "text",
+									Text:   "課前動作檢測要點：",
+									Color:  "#000000",
+									Size:   "md",
+									Flex:   linebot.IntPtr(1),
+									Weight: "bold",
+								},
+								&linebot.TextComponent{
+									Type:  "text",
+									Text:  work.PreviewNote,
+									Wrap:  true,
+									Color: "#666666",
+									Size:  "sm",
+									Flex:  linebot.IntPtr(5),
+								},
+							},
+						},
+					},
 				},
-				&linebot.TextComponent{
-					Type: "text",
-					Size: "md",
-					Text: work.PreviewNote,
-					Wrap: true,
-				},
-				&linebot.TextComponent{
-					Type: "text",
-					Size: "lg",
-					Text: "學習反思：",
-					Wrap: true,
-				},
-				&linebot.TextComponent{
-					Type: "text",
-					Size: "md",
-					Text: work.Reflection,
-					Wrap: true,
+				&linebot.BoxComponent{
+					Type:    "box",
+					Layout:  "vertical",
+					Margin:  "lg",
+					Spacing: "sm",
+					Contents: []linebot.FlexComponent{
+						&linebot.BoxComponent{
+							Type:    "box",
+							Layout:  "vertical",
+							Spacing: "sm",
+							Contents: []linebot.FlexComponent{
+								&linebot.TextComponent{
+									Type:   "text",
+									Text:   "學習反思：",
+									Color:  "#000000",
+									Size:   "md",
+									Flex:   linebot.IntPtr(1),
+									Weight: "bold",
+								},
+								&linebot.TextComponent{
+									Type:  "text",
+									Text:  work.Reflection,
+									Wrap:  true,
+									Color: "#666666",
+									Size:  "sm",
+									Flex:  linebot.IntPtr(5),
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 		Footer: &linebot.BoxComponent{
-			Type:   "box",
-			Layout: "horizontal",
+			Type:    "box",
+			Layout:  "vertical",
+			Spacing: "sm",
 			Contents: []linebot.FlexComponent{
 				&linebot.ButtonComponent{
 					Type:   "button",
-					Style:  "primary",
+					Style:  "link",
+					Height: "sm",
 					Action: btnAction,
 				},
 			},
