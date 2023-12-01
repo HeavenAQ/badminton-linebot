@@ -69,10 +69,12 @@ func (p *Portfolio) GetSkillPortfolio(skill string) map[string]Work {
 }
 
 type Work struct {
-	DateTime   string `json:"date"`
-	Video      string `json:"video"`
-	Thumbnail  string `json:"thumbnail"`
-	Reflection string `json:"reflection"`
+	DateTime      string `json:"date"`
+	RawVideo      string `json:"video"`
+	SkeletonVideo string `json:"skeletonVideo"`
+	Thumbnail     string `json:"thumbnail"`
+	Reflection    string `json:"reflection"`
+	PreviewNote   string `json:"previewNote"`
 }
 
 type Handedness int8

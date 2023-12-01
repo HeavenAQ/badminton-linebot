@@ -53,32 +53,36 @@ func SkillStrToEnum(str string) Skill {
 type Action int8
 
 const (
-	Upload Action = iota
+	AnalyzeVideo Action = iota
 	AddReflection
 	ViewPortfolio
-	ViewSyllabus
+	PreviewCourse
 	ViewInstruction
 	ViewExpertVideo
 )
 
 func (a Action) String() string {
-	return [...]string{"upload", "add_reflection", "view_portfolio", "view_syllabus", "view_instruction", "view_expert_video"}[a]
+	return [...]string{"analyze_video", "add_reflection", "view_portfolio", "preview_course", "view_instruction", "view_expert_video"}[a]
 }
 
 func (a Action) ChnString() string {
-	return [...]string{"上傳錄影", "新增學習反思", "我的學習歷程", "課程大綱", "使用說明", "專家影片"}[a]
+	return [...]string{"分析影片", "本週學習反思", "學習歷程", "課前動作檢測", "使用說明", "專家影片"}[a]
 }
 
 func ActionStrToEnum(str string) Action {
 	switch str {
-	case "upload":
-		return Upload
+	case "analyze_video":
+		return AnalyzeVideo
 	case "add_reflection":
 		return AddReflection
 	case "view_portfolio":
 		return ViewPortfolio
 	case "view_expert_video":
 		return ViewExpertVideo
+	case "preview_course":
+		return PreviewCourse
+	case "view_instruction":
+		return ViewInstruction
 	default:
 		return -1
 	}

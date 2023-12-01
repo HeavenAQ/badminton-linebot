@@ -119,20 +119,20 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 			app.WarnLogger.Println("\n\tError sending instruction: ", err)
 		}
 		app.InfoLogger.Println("\n\tInstruction sent. Response from line: ", res)
-	case "我的學習歷程":
+	case "學習歷程":
 		app.Bot.PromptSkillSelection(replyToken, line.ViewPortfolio, "請選擇要查看的學習歷程")
 	case "專家影片":
 		_, err := app.Bot.PromptHandednessSelection(replyToken)
 		if err != nil {
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
-	case "上傳錄影":
-		app.Bot.PromptSkillSelection(replyToken, line.Upload, "請選擇要上傳錄影的動作")
+	case "分析影片":
+		app.Bot.PromptSkillSelection(replyToken, line.AnalyzeVideo, "請選擇要分析的動作")
 		go app.updateUserState(user.Id, db.UploadingVideo)
-	case "新增學習反思":
+	case "本週學習反思":
 		app.Bot.PromptSkillSelection(replyToken, line.AddReflection, "請選擇要新增學習反思的動作")
 		go app.updateUserState(user.Id, db.WritingReflection)
-	case "課程大綱":
+	case "課前動作檢測":
 		app.Bot.SendSyllabus(replyToken)
 	default:
 		isWritingReflection := session.UserState == db.WritingReflection
@@ -233,7 +233,7 @@ func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, actio
 		if err != nil {
 			return errors.New("\n\tError resolving view expert video: " + err.Error())
 		}
-	case line.Upload:
+	case line.AnalyzeVideo:
 		// update user session
 		go app.Db.UpdateUserSession(user.Id, db.UserSession{
 			UserState: db.UploadingVideo,

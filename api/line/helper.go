@@ -8,7 +8,7 @@ import (
 func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn) *linebot.BubbleContainer {
 	var btnAction linebot.TemplateAction
 	if btnType == VideoLink {
-		btnAction = linebot.NewURIAction("觀看影片", work.Video)
+		btnAction = linebot.NewURIAction("觀看影片", work.RawVideo)
 	} else if btnType == VideoDate {
 		btnAction = linebot.NewPostbackAction("更新心得", "type=update_reflection&date="+work.DateTime, "", "", "openKeyboard", "")
 	}
@@ -37,6 +37,24 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn
 			Type:   "box",
 			Layout: "horizontal",
 			Contents: []linebot.FlexComponent{
+				&linebot.TextComponent{
+					Type: "text",
+					Size: "lg",
+					Text: "課前動作檢測要點：",
+					Wrap: true,
+				},
+				&linebot.TextComponent{
+					Type: "text",
+					Size: "md",
+					Text: work.PreviewNote,
+					Wrap: true,
+				},
+				&linebot.TextComponent{
+					Type: "text",
+					Size: "lg",
+					Text: "學習反思：",
+					Wrap: true,
+				},
 				&linebot.TextComponent{
 					Type: "text",
 					Size: "md",

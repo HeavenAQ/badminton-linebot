@@ -64,10 +64,11 @@ func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPor
 	id := driveFile.Id
 	date := time.Now().Format("2006-01-02-15-04")
 	work := Work{
-		DateTime:   driveFile.Name,
-		Reflection: "尚未填寫心得",
-		Thumbnail:  "https://drive.google.com/thumbnail?id=" + id,
-		Video:      "https://drive.google.com/file/d/" + id + "/view?usp=drive_link",
+		DateTime:    driveFile.Name,
+		Reflection:  "尚未填寫心得",
+		PreviewNote: "尚未新增課前檢視要點",
+		Thumbnail:   "https://drive.google.com/thumbnail?id=" + id,
+		RawVideo:    "https://drive.google.com/file/d/" + id + "/view?usp=drive_link",
 	}
 	(*userPortfolio)[date] = work
 	handler.UpdateUserSession(user.Id, *session)
@@ -79,7 +80,7 @@ func (handler *FirebaseHandler) UpdateUserPortfolioReflection(user *UserData, us
 	work := Work{
 		DateTime:   targetWork.DateTime,
 		Reflection: reflection,
-		Video:      targetWork.Video,
+		RawVideo:   targetWork.RawVideo,
 		Thumbnail:  targetWork.Thumbnail,
 	}
 	(*userPortfolio)[session.UpdatingDate] = work
