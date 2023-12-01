@@ -18,33 +18,27 @@ type enum interface {
 type Skill int8
 
 const (
-	Lift Skill = iota
-	Drop
-	Netplay
+	Serve Skill = iota
+	Smash
 	Clear
-	Footwork
 )
 
 func (s Skill) String() string {
-	return [...]string{"lift", "drop", "netplay", "clear", "footwork"}[s]
+	return [...]string{"serve", "smash", "clear"}[s]
 }
 
 func (s Skill) ChnString() string {
-	return [...]string{"挑球", "切球", "小球", "高遠球", "腳步"}[s]
+	return [...]string{"殺球", "挑球", "高遠球"}[s]
 }
 
 func SkillStrToEnum(str string) Skill {
 	switch str {
-	case "lift":
-		return Lift
-	case "drop":
-		return Drop
-	case "netplay":
-		return Netplay
+	case "serve":
+		return Serve
+	case "smash":
+		return Smash
 	case "clear":
 		return Clear
-	case "footwork":
-		return Footwork
 	default:
 		return -1
 	}
@@ -56,13 +50,13 @@ const (
 	AnalyzeVideo Action = iota
 	AddReflection
 	ViewPortfolio
-	PreviewCourse
+	AddPreviewNote
 	ViewInstruction
 	ViewExpertVideo
 )
 
 func (a Action) String() string {
-	return [...]string{"analyze_video", "add_reflection", "view_portfolio", "preview_course", "view_instruction", "view_expert_video"}[a]
+	return [...]string{"analyze_video", "add_reflection", "view_portfolio", "add_preview_note", "view_instruction", "view_expert_video"}[a]
 }
 
 func (a Action) ChnString() string {
@@ -79,8 +73,8 @@ func ActionStrToEnum(str string) Action {
 		return ViewPortfolio
 	case "view_expert_video":
 		return ViewExpertVideo
-	case "preview_course":
-		return PreviewCourse
+	case "add_preview_note":
+		return AddPreviewNote
 	case "view_instruction":
 		return ViewInstruction
 	default:

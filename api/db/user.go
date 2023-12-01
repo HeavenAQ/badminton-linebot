@@ -1,8 +1,6 @@
 package db
 
 import (
-	"time"
-
 	drive "github.com/HeavenAQ/api/drive"
 	googleDrive "google.golang.org/api/drive/v3"
 )
@@ -14,19 +12,15 @@ func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (
 		Id:         userFolders.UserId,
 		Handedness: Right,
 		FolderIds: FolderIds{
-			Root:     userFolders.RootFolderId,
-			Lift:     userFolders.LiftFolderId,
-			Drop:     userFolders.DropFolderId,
-			Netplay:  userFolders.NetplayFolderId,
-			Clear:    userFolders.ClearFolderId,
-			Footwork: userFolders.FootworkFolderId,
+			Root:  userFolders.RootFolderId,
+			Serve: userFolders.ServeFolderId,
+			Smash: userFolders.SmashFolderId,
+			Clear: userFolders.ClearFolderId,
 		},
 		Portfolio: Portfolio{
-			Lift:     map[string]Work{},
-			Drop:     map[string]Work{},
-			Netplay:  map[string]Work{},
-			Clear:    map[string]Work{},
-			Footwork: map[string]Work{},
+			Serve: map[string]Work{},
+			Smash: map[string]Work{},
+			Clear: map[string]Work{},
 		},
 	}
 
@@ -62,13 +56,14 @@ func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness 
 
 func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File) error {
 	id := driveFile.Id
-	date := time.Now().Format("2006-01-02-15-04")
+	date := driveFile.Name
 	work := Work{
-		DateTime:    driveFile.Name,
+		DateTime:    date,
+		Rating:      63.47,
 		Reflection:  "尚未填寫心得",
-		PreviewNote: "尚未新增課前檢視要點",
-		Thumbnail:   "https://drive.google.com/thumbnail?id=" + id,
-		RawVideo:    "https://drive.google.com/file/d/" + id + "/view?usp=drive_link",
+		PreviewNote: "尚未填寫課前檢視要點",
+		AINote:      "1. 預備時完成雙手手肘手腕向前預備動作\n2. 擊球前慣用手手肘手腕抬高\n擊球前慣用腳往後移動",
+		RawVideo:    id,
 	}
 	(*userPortfolio)[date] = work
 	handler.UpdateUserSession(user.Id, *session)
@@ -79,10 +74,30 @@ func (handler *FirebaseHandler) UpdateUserPortfolioReflection(user *UserData, us
 	targetWork := (*userPortfolio)[session.UpdatingDate]
 	work := Work{
 		DateTime:    targetWork.DateTime,
+		Rating:      targetWork.Rating,
 		Reflection:  reflection,
 		PreviewNote: targetWork.PreviewNote,
 		RawVideo:    targetWork.RawVideo,
-		Thumbnail:   targetWork.Thumbnail,
+		AINote:      targetWork.AINote,
+	}
+	(*userPortfolio)[session.UpdatingDate] = work
+
+	err := handler.UpdateUserSession(user.Id, *session)
+	if err != nil {
+		return err
+	}
+	return handler.updateUserData(user)
+}
+
+func (handler *FirebaseHandler) UpdateUserPortfolioPreviewNote(user *UserData, userPortfolio *map[string]Work, session *UserSession, previewNote string) error {
+	targetWork := (*userPortfolio)[session.UpdatingDate]
+	work := Work{
+		DateTime:    targetWork.DateTime,
+		Reflection:  targetWork.Reflection,
+		Rating:      targetWork.Rating,
+		AINote:      targetWork.AINote,
+		PreviewNote: previewNote,
+		RawVideo:    targetWork.RawVideo,
 	}
 	(*userPortfolio)[session.UpdatingDate] = work
 

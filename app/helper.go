@@ -89,16 +89,12 @@ func (app *App) downloadVideo(event *linebot.Event) (io.Reader, error) {
 func (app *App) getVideoFolder(user *db.UserData, skill string) string {
 	var folderId string
 	switch skill {
-	case "lift":
-		folderId = user.FolderIds.Lift
-	case "drop":
-		folderId = user.FolderIds.Drop
-	case "netplay":
-		folderId = user.FolderIds.Netplay
+	case "serve":
+		folderId = user.FolderIds.Serve
+	case "smash":
+		folderId = user.FolderIds.Smash
 	case "clear":
 		folderId = user.FolderIds.Clear
-	case "footwork":
-		folderId = user.FolderIds.Footwork
 	}
 	return folderId
 }
@@ -106,16 +102,12 @@ func (app *App) getVideoFolder(user *db.UserData, skill string) string {
 func (app *App) getUserPortfolio(user *db.UserData, skill string) *map[string]db.Work {
 	var work map[string]db.Work
 	switch skill {
-	case "lift":
-		work = user.Portfolio.Lift
-	case "drop":
-		work = user.Portfolio.Drop
-	case "netplay":
-		work = user.Portfolio.Netplay
+	case "serve":
+		work = user.Portfolio.Serve
+	case "smash":
+		work = user.Portfolio.Smash
 	case "clear":
 		work = user.Portfolio.Clear
-	case "footwork":
-		work = user.Portfolio.Footwork
 	}
 	return &work
 }
@@ -195,4 +187,38 @@ func (app *App) handleVideoMessage(event *linebot.Event, user *db.UserData, sess
 
 	// reset user session
 	app.resetUserSession(user.Id)
+}
+
+func (app *App) resolveWritingReflection(event *linebot.Event, user *db.UserData, session *db.UserSession) error {
+	switch event.Message.(type) {
+	case *linebot.TextMessage:
+		err := app.updateUserReflection(event, user, session)
+		if err != nil {
+			return err
+		}
+		app.resetUserSession(user.Id)
+	default:
+		_, err := app.Bot.SendReply(event.ReplyToken, "請輸入學習反思")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (app *App) resolveWritingPreviewNote(event *linebot.Event, user *db.UserData, session *db.UserSession) error {
+	switch event.Message.(type) {
+	case *linebot.TextMessage:
+		err := app.updateUserPreviewNote(event, user, session)
+		if err != nil {
+			return err
+		}
+		app.resetUserSession(user.Id)
+	default:
+		_, err := app.Bot.SendReply(event.ReplyToken, "請輸入課前檢視要點")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

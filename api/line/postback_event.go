@@ -11,9 +11,9 @@ import (
 func (handler *LineBotHandler) getSkillQuickReplyItems(actionType Action) *linebot.QuickReplyItems {
 	items := []*linebot.QuickReplyButton{}
 	userAction := UserActionPostback{Type: actionType}
-	replyAction := handler.getQuickReplyAction(actionType, Lift)
+	replyAction := handler.getQuickReplyAction(actionType, Serve)
 
-	for _, skill := range []Skill{Lift, Drop, Netplay, Clear, Footwork} {
+	for _, skill := range []Skill{Serve, Smash, Clear} {
 		userAction.Skill = skill
 		items = append(items, linebot.NewQuickReplyButton(
 			"",
@@ -85,7 +85,7 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 	return nil
 }
 
-func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill, carouselBtn CarouselBtn) error {
+func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill, userState db.UserState) error {
 	// get works from user portfolio
 	works := user.Portfolio.GetSkillPortfolio(skill.String())
 	if works == nil || len(works) == 0 {
@@ -101,7 +101,7 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 	}
 
 	// generate carousels from works
-	carousels, err := handler.getCarousels(works, skill, carouselBtn)
+	carousels, err := handler.getCarousels(works, skill, userState)
 	if err != nil {
 		handler.replyViewPortfolioError(works, event, err.Error())
 		return errors.New("\n\tError getting carousels: " + err.Error())
@@ -136,16 +136,5 @@ func (handler *LineBotHandler) ResolveVideoUpload(event *linebot.Event, user *db
 			),
 		),
 	).Do()
-	return err
-}
-
-func (handler *LineBotHandler) ResolveAddReflection(event *linebot.Event, user *db.UserData, skill Skill, date string) error {
-	_, err := handler.bot.ReplyMessage(
-		event.ReplyToken,
-		linebot.NewTextMessage("請輸入【"+date+"】的【"+skill.ChnString()+"】的學習反思"),
-	).Do()
-	if err != nil {
-		return errors.New("\n\tError resolving view portfolio: " + err.Error())
-	}
 	return err
 }

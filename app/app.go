@@ -127,30 +127,21 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
 	case "分析影片":
-		app.Bot.PromptSkillSelection(replyToken, line.AnalyzeVideo, "請選擇要分析的動作")
-		go app.updateUserState(user.Id, db.UploadingVideo)
+		go app.Bot.PromptSkillSelection(replyToken, line.AnalyzeVideo, "請選擇要分析的動作")
+		app.updateUserState(user.Id, db.UploadingVideo)
 	case "本週學習反思":
-		app.Bot.PromptSkillSelection(replyToken, line.AddReflection, "請選擇要新增學習反思的動作")
-		go app.updateUserState(user.Id, db.WritingReflection)
+		go app.Bot.PromptSkillSelection(replyToken, line.AddReflection, "請選擇要新增學習反思的動作")
+		app.updateUserState(user.Id, db.WritingReflection)
 	case "課前動作檢測":
-		app.Bot.SendSyllabus(replyToken)
+		go app.Bot.PromptSkillSelection(replyToken, line.AddPreviewNote, "請選擇要新增課前檢視要點的動作")
+		app.updateUserState(user.Id, db.WritingPreviewNote)
 	default:
 		isWritingReflection := session.UserState == db.WritingReflection
 		isWritingPreviewNote := session.UserState == db.WritingPreviewNote
 		if isWritingReflection {
-			err := app.updateUserReflection(event, user, session)
-			if err != nil {
-				app.WarnLogger.Println("\n\tError updating user reflection:", err)
-				app.Bot.SendDefaultErrorReply(replyToken)
-			}
-			app.resetUserSession(user.Id)
+			app.resolveWritingReflection(event, user, session)
 		} else if isWritingPreviewNote {
-			err := app.updateUserPreviewNote(event, user, session)
-			if err != nil {
-				app.WarnLogger.Println("\n\tError updating user reflection:", err)
-				app.Bot.SendDefaultErrorReply(replyToken)
-			}
-			app.resetUserSession(user.Id)
+			app.resolveWritingPreviewNote(event, user, session)
 		} else {
 			app.Bot.SendDefaultReply(replyToken)
 		}
@@ -168,18 +159,31 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData, ses
 
 	if len(data) == 0 {
 		app.WarnLogger.Println("\n\tEmpty postback data")
+	} else if data[0][0] == "video_id" {
+		app.Bot.SendVideoMessage(replyToken, data[0][1])
 	} else if data[0][0] == "handedness" {
 		app.handleHandednessReply(replyToken, user, data[0][1])
 	} else if data[1][0] == "date" {
-		app.Db.UpdateUserSession(user.Id, db.UserSession{
-			UserState:    session.UserState,
-			UpdatingDate: data[1][1],
-			Skill:        session.Skill,
-		})
-		app.Bot.ResolveAddReflection(event, user, line.SkillStrToEnum(session.Skill), data[1][1])
+		app.handleDateReply(data[1][1], replyToken, user, session)
 	} else {
 		app.handleUserAction(event, user, data)
 	}
+}
+
+func (app *App) handleDateReply(date string, replyToken string, user *db.UserData, session *db.UserSession) {
+	app.Db.UpdateUserSession(user.Id, db.UserSession{
+		UserState:    session.UserState,
+		UpdatingDate: date,
+		Skill:        session.Skill,
+	})
+
+	msg := "請輸入【" + date + "】的【" + line.SkillStrToEnum(session.Skill).ChnString() + "】的"
+	if session.UserState == db.WritingPreviewNote {
+		msg += "課前檢視要點"
+	} else {
+		msg += "學習反思"
+	}
+	app.Bot.SendReply(replyToken, msg)
 }
 
 func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data string) {
@@ -220,19 +224,25 @@ func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [
 
 func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, action line.UserActionPostback) error {
 	switch action.Type {
-	case line.AddReflection:
+	case line.AddReflection, line.AddPreviewNote:
 		// update user session
+		var userState db.UserState
+		if action.Type == line.AddReflection {
+			userState = db.WritingReflection
+		} else {
+			userState = db.WritingPreviewNote
+		}
 		go app.Db.UpdateUserSession(user.Id, db.UserSession{
-			UserState: db.WritingReflection,
+			UserState: userState,
 			Skill:     action.Skill.String(),
 		})
 
-		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill, line.VideoDate)
+		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill, userState)
 		if err != nil {
 			return errors.New("\n\tError resolving view portfolio: " + err.Error())
 		}
 	case line.ViewPortfolio:
-		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill, line.VideoLink)
+		err := app.Bot.ResolveViewPortfolio(event, user, action.Skill, db.None)
 		if err != nil {
 			return errors.New("\n\tError resolving view portfolio: " + err.Error())
 		}

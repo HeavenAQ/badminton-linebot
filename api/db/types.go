@@ -36,46 +36,39 @@ type UserData struct {
 }
 
 type FolderIds struct {
-	Root     string `json:"root"`
-	Lift     string `json:"lift"`
-	Drop     string `json:"drop"`
-	Netplay  string `json:"netplay"`
-	Clear    string `json:"clear"`
-	Footwork string `json:"footwork"`
+	Root  string `json:"root"`
+	Serve string `json:"serve"`
+	Smash string `json:"smash"`
+	Clear string `json:"clear"`
 }
 
 type Portfolio struct {
-	Lift     map[string]Work `json:"lift"`
-	Drop     map[string]Work `json:"drop"`
-	Netplay  map[string]Work `json:"netplay"`
-	Clear    map[string]Work `json:"clear"`
-	Footwork map[string]Work `json:"footwork"`
+	Serve map[string]Work `json:"serve"`
+	Smash map[string]Work `json:"smash"`
+	Clear map[string]Work `json:"clear"`
 }
 
 func (p *Portfolio) GetSkillPortfolio(skill string) map[string]Work {
 	switch skill {
-	case "lift":
-		return p.Lift
-	case "drop":
-		return p.Drop
-	case "netplay":
-		return p.Netplay
+	case "serve":
+		return p.Serve
+	case "samsh":
+		return p.Smash
 	case "clear":
 		return p.Clear
-	case "footwork":
-		return p.Footwork
 	default:
 		return nil
 	}
 }
 
 type Work struct {
-	DateTime      string `json:"date"`
-	RawVideo      string `json:"video"`
-	SkeletonVideo string `json:"skeletonVideo"`
-	Thumbnail     string `json:"thumbnail"`
-	Reflection    string `json:"reflection"`
-	PreviewNote   string `json:"previewNote"`
+	DateTime      string  `json:"date"`
+	RawVideo      string  `json:"video"`
+	SkeletonVideo string  `json:"skeletonVideo"`
+	Rating        float32 `json:"rating"`
+	Reflection    string  `json:"reflection"`
+	PreviewNote   string  `json:"previewNote"`
+	AINote        string  `json:"aiNote"`
 }
 
 type Handedness int8

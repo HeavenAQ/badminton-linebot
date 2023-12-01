@@ -2,15 +2,10 @@ package drive
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"log"
-	"net/http"
 	"os"
 	"time"
 
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
@@ -28,43 +23,12 @@ func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 	}, nil
 }
 
-func getConfigFromJSON() *oauth2.Config {
-	b, err := os.ReadFile(os.Getenv("GOOGLE_CREDENTIALS"))
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
-	config, err := google.ConfigFromJSON(b, drive.DriveScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	return config
-}
-
-func getClient(config *oauth2.Config, ctx *context.Context) *http.Client {
-	url := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	fmt.Printf("Visit the URL for the auth dialog: %v", url)
-
-	var code string
-	if _, err := fmt.Scan(&code); err != nil {
-		log.Fatalf("Unable to read authorization code %v", err)
-	}
-
-	token, err := config.Exchange(*ctx, code)
-	if err != nil {
-		log.Fatalf("Unable to retrieve token from web %v", err)
-	}
-
-	return config.Client(*ctx, token)
-}
-
 func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName string) (*UserFolders, error) {
 	folderNames := []string{
 		userId,
-		"lift",
-		"drop",
-		"netplay",
+		"serve",
+		"smash",
 		"clear",
-		"footwork",
 	}
 
 	userFolders := UserFolders{
@@ -92,16 +56,12 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 		switch folderName {
 		case userId:
 			userFolders.RootFolderId = folder.Id
-		case "lift":
-			userFolders.LiftFolderId = folder.Id
-		case "drop":
-			userFolders.DropFolderId = folder.Id
-		case "netplay":
-			userFolders.NetplayFolderId = folder.Id
+		case "serve":
+			userFolders.ServeFolderId = folder.Id
+		case "smash":
+			userFolders.SmashFolderId = folder.Id
 		case "clear":
 			userFolders.ClearFolderId = folder.Id
-		case "footwork":
-			userFolders.FootworkFolderId = folder.Id
 		}
 	}
 

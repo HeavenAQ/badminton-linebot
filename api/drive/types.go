@@ -10,12 +10,10 @@ type GoogleDriveHandler struct {
 }
 
 type UserFolders struct {
-	UserId           string
-	UserName         string
-	RootFolderId     string
-	LiftFolderId     string
-	DropFolderId     string
-	NetplayFolderId  string
-	ClearFolderId    string
-	FootworkFolderId string
+	UserId        string
+	UserName      string
+	RootFolderId  string
+	ServeFolderId string
+	SmashFolderId string
+	ClearFolderId string
 }

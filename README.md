@@ -3,10 +3,10 @@
 ### parameters
 
 - `type`
-  - upload
+  - analyze_video
   - add_reflection
   - view_portfolio
-  - view_syllabus
+  - add_preview_note
   - view_instruction
   - view_expert_video
 - `handedness`
@@ -15,8 +15,7 @@
 - `date`
   - YYYY-MM-DD-HH-MM
 - `skill`
-  - lift
-  - drop
-  - netplay
+  - serve
+  - smash
   - clear
-  - footwork
+- `video_id`
