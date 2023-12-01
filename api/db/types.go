@@ -22,6 +22,7 @@ type UserState int8
 
 const (
 	WritingReflection = iota
+	WritingPreviewNote
 	UploadingVideo
 	None
 )

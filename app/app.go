@@ -136,8 +136,16 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 		app.Bot.SendSyllabus(replyToken)
 	default:
 		isWritingReflection := session.UserState == db.WritingReflection
+		isWritingPreviewNote := session.UserState == db.WritingPreviewNote
 		if isWritingReflection {
 			err := app.updateUserReflection(event, user, session)
+			if err != nil {
+				app.WarnLogger.Println("\n\tError updating user reflection:", err)
+				app.Bot.SendDefaultErrorReply(replyToken)
+			}
+			app.resetUserSession(user.Id)
+		} else if isWritingPreviewNote {
+			err := app.updateUserPreviewNote(event, user, session)
 			if err != nil {
 				app.WarnLogger.Println("\n\tError updating user reflection:", err)
 				app.Bot.SendDefaultErrorReply(replyToken)
@@ -178,7 +186,7 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 	handedness, err := db.HandednessStrToEnum(data)
 	if err != nil {
 		app.WarnLogger.Println("\n\tInvalid handedness data")
-		app.Bot.SendWrongHandednessReply(replyToken)
+		app.Bot.SendReply(replyToken, "請選擇左手或右手")
 		return
 	}
 

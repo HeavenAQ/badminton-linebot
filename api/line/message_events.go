@@ -4,23 +4,16 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func (handler *LineBotHandler) SendDefaultReply(replyToken string) (*linebot.BasicResponse, error) {
-	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage("請點選選單的項目")).Do()
+func (handler *LineBotHandler) SendReply(replyToken string, msg string) (*linebot.BasicResponse, error) {
+	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
 
-func (handler *LineBotHandler) SendReflectionUpdatedReply(replyToken string) (*linebot.BasicResponse, error) {
-	return handler.bot.ReplyMessage(
-		replyToken,
-		linebot.NewTextMessage("已成功更新個人學習反思!"),
-	).Do()
+func (handler *LineBotHandler) SendDefaultReply(replyToken string) (*linebot.BasicResponse, error) {
+	return handler.SendReply(replyToken, "請點選選單的項目")
 }
 
 func (handler *LineBotHandler) SendDefaultErrorReply(replyToken string) (*linebot.BasicResponse, error) {
-	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage("發生錯誤，請重新操作")).Do()
-}
-
-func (handler *LineBotHandler) SendWrongHandednessReply(replyToken string) (*linebot.BasicResponse, error) {
-	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage("請選擇左手或右手")).Do()
+	return handler.SendReply(replyToken, "發生錯誤，請重新操作")
 }
 
 func (handler *LineBotHandler) SendWelcomeReply(event *linebot.Event) (*linebot.BasicResponse, error) {
@@ -28,10 +21,8 @@ func (handler *LineBotHandler) SendWelcomeReply(event *linebot.Event) (*linebot.
 	if err != nil {
 		return nil, err
 	}
-	return handler.bot.ReplyMessage(
-		event.ReplyToken,
-		linebot.NewTextMessage("Hi "+username+"! 歡迎加入羽球教室🏸\n"+"已建立您的使用者資料🎉🎊 請點選選單的項目開始使用"),
-	).Do()
+	welcomMsg := "Hi " + username + "! 歡迎加入羽球教室🏸\n" + "已建立您的使用者資料🎉🎊 請點選選單的項目開始使用"
+	return handler.SendReply(event.ReplyToken, welcomMsg)
 }
 
 func (handler *LineBotHandler) SendVideoUploadedReply(replyToken string, skill string, videoFolder string) (*linebot.BasicResponse, error) {

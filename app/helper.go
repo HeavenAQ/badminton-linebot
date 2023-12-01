@@ -127,7 +127,21 @@ func (app *App) updateUserReflection(event *linebot.Event, user *db.UserData, se
 	if err != nil {
 		return err
 	}
-	_, err = app.Bot.SendReflectionUpdatedReply(event.ReplyToken)
+	_, err = app.Bot.SendReply(event.ReplyToken, "已成功更新個人學習反思!")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (app *App) updateUserPreviewNote(event *linebot.Event, user *db.UserData, session *db.UserSession) error {
+	userPortfolio := app.getUserPortfolio(user, session.Skill)
+	previewNote := event.Message.(*linebot.TextMessage).Text
+	err := app.Db.UpdateUserPortfolioPreviewNote(user, userPortfolio, session, previewNote)
+	if err != nil {
+		return err
+	}
+	_, err = app.Bot.SendReply(event.ReplyToken, "已成功更新課前檢視要點!")
 	if err != nil {
 		return err
 	}
