@@ -28,7 +28,7 @@ func (s Skill) String() string {
 }
 
 func (s Skill) ChnString() string {
-	return [...]string{"殺球", "挑球", "高遠球"}[s]
+	return [...]string{"發球", "殺球", "高遠球"}[s]
 }
 
 func SkillStrToEnum(str string) Skill {
