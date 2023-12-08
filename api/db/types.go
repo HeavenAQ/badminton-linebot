@@ -52,7 +52,7 @@ func (p *Portfolio) GetSkillPortfolio(skill string) map[string]Work {
 	switch skill {
 	case "serve":
 		return p.Serve
-	case "samsh":
+	case "smash":
 		return p.Smash
 	case "clear":
 		return p.Clear
@@ -63,8 +63,7 @@ func (p *Portfolio) GetSkillPortfolio(skill string) map[string]Work {
 
 type Work struct {
 	DateTime      string  `json:"date"`
-	RawVideo      string  `json:"video"`
-	SkeletonVideo string  `json:"skeletonVideo"`
+	SkeletonVideo string  `json:"video"`
 	Rating        float32 `json:"rating"`
 	Reflection    string  `json:"reflection"`
 	PreviewNote   string  `json:"previewNote"`

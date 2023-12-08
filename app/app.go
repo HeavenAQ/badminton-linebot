@@ -99,7 +99,7 @@ func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, sess
 		app.handleTextMessage(event, user, session)
 	case *linebot.VideoMessage:
 		if session.UserState == db.UploadingVideo {
-			app.handleVideoMessage(event, user, session)
+			app.resolveUploadVideo(event, user, session)
 		} else {
 			app.WarnLogger.Println("\n\tUnknown message type: ", event.Message.Type())
 			app.Bot.SendDefaultErrorReply(event.ReplyToken)
@@ -127,7 +127,10 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
 	case "分析影片":
-		go app.Bot.PromptSkillSelection(replyToken, line.AnalyzeVideo, "請選擇要分析的動作")
+		_, err := app.Bot.PromptHandednessSelection(replyToken)
+		if err != nil {
+			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
+		}
 		app.updateUserState(user.Id, db.UploadingVideo)
 	case "本週學習反思":
 		go app.Bot.PromptSkillSelection(replyToken, line.AddReflection, "請選擇要新增學習反思的動作")
@@ -162,7 +165,7 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData, ses
 	} else if data[0][0] == "video_id" {
 		app.Bot.SendVideoMessage(replyToken, data[0][1])
 	} else if data[0][0] == "handedness" {
-		app.handleHandednessReply(replyToken, user, data[0][1])
+		app.handleHandednessReply(replyToken, user, data[0][1], session)
 	} else if data[1][0] == "date" {
 		app.handleDateReply(data[1][1], replyToken, user, session)
 	} else {
@@ -186,7 +189,7 @@ func (app *App) handleDateReply(date string, replyToken string, user *db.UserDat
 	app.Bot.SendReply(replyToken, msg)
 }
 
-func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data string) {
+func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data string, session *db.UserSession) {
 	handedness, err := db.HandednessStrToEnum(data)
 	if err != nil {
 		app.WarnLogger.Println("\n\tInvalid handedness data")
@@ -202,7 +205,14 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 			return
 		}
 	}
-	app.Bot.PromptSkillSelection(replyToken, line.ViewExpertVideo, "請選擇要觀看的動作")
+
+	// check line action
+	if session.UserState == db.UploadingVideo {
+		app.Bot.PromptSkillSelection(replyToken, line.AnalyzeVideo, "請選擇要分析的動作")
+	} else {
+		app.Bot.PromptSkillSelection(replyToken, line.ViewExpertVideo, "請選擇要觀看的動作")
+	}
+
 }
 
 func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [2][2]string) {
@@ -258,7 +268,7 @@ func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, actio
 			Skill:     action.Skill.String(),
 		})
 
-		err := app.Bot.ResolveVideoUpload(event, user, action.Skill)
+		err := app.Bot.PromptUploadVideo(event, user, action.Skill)
 		if err != nil {
 			return errors.New("\n\tError resolving upload: " + err.Error())
 		}

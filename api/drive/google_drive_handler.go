@@ -1,8 +1,9 @@
 package drive
 
 import (
+	"bytes"
 	"context"
-	"io"
+	"encoding/base64"
 	"os"
 	"time"
 
@@ -68,8 +69,14 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 	return &userFolders, nil
 }
 
-func (handler *GoogleDriveHandler) UploadVideo(folderId string, blob io.Reader) (*drive.File, error) {
+func (handler *GoogleDriveHandler) UploadVideo(folderId string, base64_encoded_blob string) (*drive.File, error) {
 	filename := time.Now().Format("2006-01-02-15-04")
+	decoded_blob, err := base64.StdEncoding.DecodeString(base64_encoded_blob)
+	if err != nil {
+		return nil, err
+	}
+
+	blob := bytes.NewReader(decoded_blob)
 	driveFile, err := handler.srv.Files.Create(&drive.File{
 		Name:    filename,
 		Parents: []string{folderId},

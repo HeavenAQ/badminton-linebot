@@ -54,16 +54,16 @@ func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness 
 	return handler.updateUserData(user)
 }
 
-func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File) error {
+func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File, aiRating float32, aiSuggestions string) error {
 	id := driveFile.Id
 	date := driveFile.Name
 	work := Work{
-		DateTime:    date,
-		Rating:      63.47,
-		Reflection:  "尚未填寫心得",
-		PreviewNote: "尚未填寫課前檢視要點",
-		AINote:      "1. 預備時完成雙手手肘手腕向前預備動作\n2. 擊球前慣用手手肘手腕抬高\n擊球前慣用腳往後移動",
-		RawVideo:    id,
+		DateTime:      date,
+		Rating:        aiRating,
+		Reflection:    "尚未填寫心得",
+		PreviewNote:   "尚未填寫課前檢視要點",
+		AINote:        aiSuggestions,
+		SkeletonVideo: id,
 	}
 	(*userPortfolio)[date] = work
 	handler.UpdateUserSession(user.Id, *session)
@@ -73,12 +73,12 @@ func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPor
 func (handler *FirebaseHandler) UpdateUserPortfolioReflection(user *UserData, userPortfolio *map[string]Work, session *UserSession, reflection string) error {
 	targetWork := (*userPortfolio)[session.UpdatingDate]
 	work := Work{
-		DateTime:    targetWork.DateTime,
-		Rating:      targetWork.Rating,
-		Reflection:  reflection,
-		PreviewNote: targetWork.PreviewNote,
-		RawVideo:    targetWork.RawVideo,
-		AINote:      targetWork.AINote,
+		DateTime:      targetWork.DateTime,
+		Rating:        targetWork.Rating,
+		Reflection:    reflection,
+		PreviewNote:   targetWork.PreviewNote,
+		SkeletonVideo: targetWork.SkeletonVideo,
+		AINote:        targetWork.AINote,
 	}
 	(*userPortfolio)[session.UpdatingDate] = work
 
@@ -92,12 +92,12 @@ func (handler *FirebaseHandler) UpdateUserPortfolioReflection(user *UserData, us
 func (handler *FirebaseHandler) UpdateUserPortfolioPreviewNote(user *UserData, userPortfolio *map[string]Work, session *UserSession, previewNote string) error {
 	targetWork := (*userPortfolio)[session.UpdatingDate]
 	work := Work{
-		DateTime:    targetWork.DateTime,
-		Reflection:  targetWork.Reflection,
-		Rating:      targetWork.Rating,
-		AINote:      targetWork.AINote,
-		PreviewNote: previewNote,
-		RawVideo:    targetWork.RawVideo,
+		DateTime:      targetWork.DateTime,
+		Reflection:    targetWork.Reflection,
+		Rating:        targetWork.Rating,
+		AINote:        targetWork.AINote,
+		PreviewNote:   previewNote,
+		SkeletonVideo: targetWork.SkeletonVideo,
 	}
 	(*userPortfolio)[session.UpdatingDate] = work
 

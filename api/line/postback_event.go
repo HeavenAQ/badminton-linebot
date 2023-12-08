@@ -120,7 +120,7 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 	return nil
 }
 
-func (handler *LineBotHandler) ResolveVideoUpload(event *linebot.Event, user *db.UserData, skill Skill) error {
+func (handler *LineBotHandler) PromptUploadVideo(event *linebot.Event, user *db.UserData, skill Skill) error {
 	_, err := handler.bot.ReplyMessage(
 		event.ReplyToken,
 		linebot.NewTextMessage("請上傳影片").WithQuickReplies(

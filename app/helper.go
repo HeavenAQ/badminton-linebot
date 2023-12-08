@@ -71,7 +71,6 @@ func (app *App) resetUserSession(userId string) {
 }
 
 func (app *App) downloadVideo(event *linebot.Event) (io.Reader, error) {
-	app.InfoLogger.Println("\n\tDownloading video...")
 	resp, err := app.Bot.GetVideoContent(event)
 	if err != nil {
 		return nil, err
@@ -138,55 +137,6 @@ func (app *App) updateUserPreviewNote(event *linebot.Event, user *db.UserData, s
 		return err
 	}
 	return nil
-}
-
-func (app *App) handleVideoMessage(event *linebot.Event, user *db.UserData, session *db.UserSession) {
-	replyToken := event.ReplyToken
-	app.InfoLogger.Println("\n\tDownloading video:")
-
-	// download video from line
-	blob, err := app.downloadVideo(event)
-	if err != nil {
-		app.WarnLogger.Println("\n\tError downloading video:", err)
-		app.Bot.SendDefaultErrorReply(replyToken)
-		return
-	}
-
-	// upload video to google drive
-	app.InfoLogger.Println("\n\tUploading video:")
-	folderId := app.getVideoFolder(user, session.Skill)
-	driveFile, err := app.Drive.UploadVideo(folderId, blob)
-	if err != nil {
-		app.WarnLogger.Println("\n\tError uploading video:", err)
-		app.Bot.SendDefaultErrorReply(replyToken)
-		return
-	}
-
-	// update user portfolio
-	userPortfolio := app.getUserPortfolio(user, session.Skill)
-	err = app.Db.CreateUserPortfolioVideo(user, userPortfolio, session, driveFile)
-	if err != nil {
-		app.WarnLogger.Println("\n\tError updating user portfolio after uploading video:", err)
-		app.Bot.SendDefaultErrorReply(replyToken)
-		return
-	}
-
-	// send video uploaded reply
-	app.InfoLogger.Println("\n\tVideo uploaded successfully.")
-	_, err = app.Bot.SendVideoUploadedReply(
-		event.ReplyToken,
-		session.Skill,
-		app.getVideoFolder(user, session.Skill),
-	)
-
-	if err != nil {
-		app.WarnLogger.Println("\n\tError sending video uploaded reply:", err)
-		app.Bot.SendDefaultErrorReply(replyToken)
-		return
-	}
-
-	// reset user session
-	app.resetUserSession(user.Id)
 }
 
 func (app *App) resolveWritingReflection(event *linebot.Event, user *db.UserData, session *db.UserSession) error {

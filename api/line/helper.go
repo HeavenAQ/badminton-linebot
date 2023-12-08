@@ -57,7 +57,7 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, userState db.UserSt
 			Height: "sm",
 			Action: linebot.NewPostbackAction(
 				"查看影片",
-				"video_id="+work.RawVideo,
+				"video_id="+work.SkeletonVideo,
 				"",
 				"",
 				"",
@@ -79,7 +79,7 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, userState db.UserSt
 		Type: "bubble",
 		Hero: &linebot.ImageComponent{
 			Type:        "image",
-			URL:         "https://drive.google.com/thumbnail?authuser=0&sz=w1080&id=" + work.RawVideo,
+			URL:         "https://drive.google.com/thumbnail?authuser=0&sz=w1080&id=" + work.SkeletonVideo,
 			Size:        "full",
 			AspectRatio: "20:13",
 			AspectMode:  "cover",
