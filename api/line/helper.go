@@ -2,9 +2,13 @@ package line
 
 import (
 	"fmt"
+	"slices"
+	"sort"
+	"time"
 
 	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"golang.org/x/exp/maps"
 )
 
 func (handler *LineBotHandler) gePortfolioRating(work db.Work) *linebot.BoxComponent {
@@ -211,10 +215,26 @@ func (handler *LineBotHandler) insertCarousel(carouselItems []*linebot.FlexMessa
 
 }
 
+func (handler *LineBotHandler) sortWorks(works map[string]db.Work) []db.Work {
+	workValues := maps.Values(works)
+	sort.Slice(workValues, func(i, j int) bool {
+		dateTimeI, _ := time.Parse("2006-01-02-15-04", workValues[i].DateTime)
+		dateTimeJ, _ := time.Parse("2006-01-02-15-04", workValues[j].DateTime)
+		return dateTimeI.After(dateTimeJ)
+	})
+
+	sortedWorks := []db.Work{}
+	for _, workValue := range workValues {
+		sortedWorks = append(sortedWorks, workValue)
+	}
+	return sortedWorks
+}
+
 func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skill, userState db.UserState) ([]*linebot.FlexMessage, error) {
 	items := []*linebot.BubbleContainer{}
 	carouselItems := []*linebot.FlexMessage{}
-	for _, work := range works {
+	sortedWorks := handler.sortWorks(works)
+	for _, work := range sortedWorks {
 		items = append(items, handler.getCarouselItem(work, userState))
 
 		// since the carousel can only contain 10 items, we need to split the works into multiple carousels in order to display all of them
@@ -225,7 +245,12 @@ func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skil
 	}
 
 	// insert the last carousel
-	carouselItems = handler.insertCarousel(carouselItems, items)
+	if len(items) > 0 {
+		carouselItems = handler.insertCarousel(carouselItems, items)
+	}
+
+	// latest work will be displayed last
+	slices.Reverse(carouselItems)
 	return carouselItems, nil
 }
 
