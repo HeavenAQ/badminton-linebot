@@ -75,7 +75,7 @@ func sendVideoUploadedReply(app App, event *linebot.Event, session *db.UserSessi
 
 	return err
 }
-func resizeVideo(app App, blob io.Reader, user db.UserData) (string, error) {
+func resizeVideo(app App, blob io.Reader, user *db.UserData) (string, error) {
 	app.InfoLogger.Println("\n\tResizing video:")
 
 	filename := user.Id + ".mp4"
@@ -97,23 +97,19 @@ func resizeVideo(app App, blob io.Reader, user db.UserData) (string, error) {
 	}
 
 	go os.Remove(filename)
+	app.InfoLogger.Println("\n\tVideo resized successfully.")
 	return "resized" + filename, nil
 }
 
-func analyzeVideo(app App, blob io.Reader, user *db.UserData, session *db.UserSession) (*AnalyzedResult, error) {
+func analyzeVideo(app App, resizedVideo string, user *db.UserData, session *db.UserSession) (*AnalyzedResult, error) {
 	app.InfoLogger.Println("\n\tAnalyzing video:")
 	// resize video to 1080 x 1920
-	resized, err := resizeVideo(app, blob, *user)
+	resizedBlob, err := os.ReadFile(resizedVideo)
 	if err != nil {
 		return nil, err
 	}
 
-	resizedBlob, err := os.ReadFile(resized)
-	if err != nil {
-		return nil, err
-	}
-
-	os.Remove(resized)
+	os.Remove(resizedVideo)
 
 	// set up request body with video data
 	date := time.Now().Format("2006-01-02-15-04")
@@ -150,8 +146,14 @@ func (app *App) resolveUploadVideo(event *linebot.Event, user *db.UserData, sess
 		return
 	}
 
+	resizedVideoName, err := resizeVideo(*app, blob, user)
+	if err != nil {
+		uploadError(*app, event, err, "\n\tError resizing video:")
+		return
+	}
+
 	// analyze video
-	result, err := analyzeVideo(*app, blob, user, session)
+	result, err := analyzeVideo(*app, resizedVideoName, user, session)
 	if err != nil {
 		uploadError(*app, event, err, "\n\tError analyzing video:")
 		return
