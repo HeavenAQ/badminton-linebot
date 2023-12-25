@@ -262,20 +262,20 @@ func (handler *LineBotHandler) replyViewPortfolioError(works map[string]db.Work,
 	return nil
 }
 
-func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []string {
+func (handler *LineBotHandler) getActionUrlIDs(hand db.Handedness, skill Skill) []string {
 	actionUrls := map[db.Handedness]map[Skill][]string{
 		db.Right: {
 			Serve: []string{
-				"https://www.youtube.com/watch?v=lenLFoRFPlk&list=PLZEILcK2CNCvVRym5xnKSFGFHmD13wQhM",
-				"https://youtu.be/k9RejtgoatA",
+				"https://tmp.com",
+				"https://tmp.com",
 			},
 			Smash: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"1hLx6Eqgxg9NIUwugZ4XdwR_EiGyog3QO",
+				"1hLx6Eqgxg9NIUwugZ4XdwR_EiGyog3QO",
 			},
 			Clear: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"1sHY3a-2rWr_rJEc6PYGUUbtoAgmJ49TW",
+				"1sHY3a-2rWr_rJEc6PYGUUbtoAgmJ49TW",
 			},
 		},
 		db.Left: {

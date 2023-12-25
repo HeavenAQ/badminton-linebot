@@ -57,8 +57,8 @@ func (handler *LineBotHandler) getHandednessQuickReplyItems() *linebot.QuickRepl
 }
 
 func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user *db.UserData, skill Skill) error {
-	urls := handler.getActionUrls(user.Handedness, skill)
-	if len(urls) == 0 {
+	urlIDs := handler.getActionUrlIDs(user.Handedness, skill)
+	if len(urlIDs) == 0 {
 		handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("請輸入正確的羽球動作")).Do()
 		return nil
 	}
@@ -72,9 +72,11 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 			)),
 	}
 
-	for i, url := range urls {
-		msg := fmt.Sprintf("專家影片%v：\n%v", i+1, url)
-		msgs = append(msgs, linebot.NewTextMessage(msg))
+	for _, urlID := range urlIDs {
+		msgs = append(msgs, linebot.NewVideoMessage(
+			"https://drive.google.com/uc?id="+urlID+"&export=download",
+			"https://drive.google.com/thumbnail?sz=w1080&id="+urlID,
+		))
 	}
 
 	_, err := handler.bot.ReplyMessage(event.ReplyToken, msgs...).Do()
