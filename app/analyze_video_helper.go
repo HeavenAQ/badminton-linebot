@@ -143,12 +143,14 @@ func (app *App) resolveUploadVideo(event *linebot.Event, user *db.UserData, sess
 	blob, err := downloadVideo(*app, event)
 	if err != nil {
 		uploadError(*app, event, err, "\n\tError downloading video:")
+		app.resetUserSession(user.Id)
 		return
 	}
 
 	resizedVideoName, err := resizeVideo(*app, blob, user)
 	if err != nil {
 		uploadError(*app, event, err, "\n\tError resizing video:")
+		app.resetUserSession(user.Id)
 		return
 	}
 
@@ -156,6 +158,7 @@ func (app *App) resolveUploadVideo(event *linebot.Event, user *db.UserData, sess
 	result, err := analyzeVideo(*app, resizedVideoName, user, session)
 	if err != nil {
 		uploadError(*app, event, err, "\n\tError analyzing video:")
+		app.resetUserSession(user.Id)
 		return
 	}
 
@@ -163,18 +166,21 @@ func (app *App) resolveUploadVideo(event *linebot.Event, user *db.UserData, sess
 	driveFile, err := uploadVideoToDrive(*app, user, session, result.SkeletonVideo)
 	if err != nil {
 		uploadError(*app, event, err, "\n\tError uploading video:")
+		app.resetUserSession(user.Id)
 		return
 	}
 
 	// update user portfolio
 	if err := updateUserPortfolioVideo(*app, user, session, driveFile, result.Score, result.Suggestions); err != nil {
 		uploadError(*app, event, err, "\n\tError updating user portfolio:")
+		app.resetUserSession(user.Id)
 		return
 	}
 
 	// send video uploaded reply
 	if err := sendVideoUploadedReply(*app, event, session, user); err != nil {
 		uploadError(*app, event, err, "\n\tError sending video uploaded reply:")
+		app.resetUserSession(user.Id)
 		return
 	}
 
