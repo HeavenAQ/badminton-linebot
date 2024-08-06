@@ -114,11 +114,11 @@ func analyzeVideo(app App, resizedVideo string, user *db.UserData, session *db.U
 	// set up request body with video data
 	date := time.Now().Format("2006-01-02-15-04")
 	filename := user.Id + "_" + session.Skill + "_" + date + ".mp4"
-	baseURL := "https://b3b2-140-117-176-208.ngrok-free.app/analyze"
+	baseURL := os.Getenv("GENAI_URL") + "/analyze"
 	client := resty.New()
 	client.SetTimeout(1 * time.Minute)
 	resp, err := client.R().
-		SetBasicAuth("admin", "thisisacomplicatedpassword").
+		SetBasicAuth(os.Getenv("GENAI_USER"), os.Getenv("GENAI_PASSWORD")).
 		SetQueryParam("handedness", user.Handedness.String()).
 		SetQueryParam("skill", session.Skill).
 		SetFileReader("file", filename, bytes.NewReader(resizedBlob)).
