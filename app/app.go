@@ -27,9 +27,9 @@ type App struct {
 
 func NewApp() *App {
 	rootFolder := os.Getenv("GOOGLE_ROOT_FOLDER_ID")
-	infoLogger := log.New(log.Writer(), "[INFO] ", log.LstdFlags)
-	errorLogger := log.New(log.Writer(), "[ERROR] ", log.LstdFlags)
-	warnLogger := log.New(log.Writer(), "[WARN] ", log.LstdFlags)
+	infoLogger := log.New(log.Writer(), "[INFO] ", log.LstdFlags|log.Lshortfile)
+	errorLogger := log.New(log.Writer(), "[ERROR] ", log.LstdFlags|log.Lshortfile)
+	warnLogger := log.New(log.Writer(), "[WARN] ", log.LstdFlags|log.Lshortfile)
 
 	db, err := db.NewFirebaseHandler()
 	if err != nil {
@@ -160,6 +160,8 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData, ses
 
 	if len(data) == 0 {
 		app.WarnLogger.Println("\n\tEmpty postback data")
+	} else if data[0][0] == "video_id" {
+		app.Bot.SendVideoMessage(replyToken, data[0][1])
 	} else if data[0][0] == "handedness" {
 		app.handleHandednessReply(replyToken, user, data[0][1])
 	} else if data[1][0] == "date" {

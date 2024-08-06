@@ -1,6 +1,8 @@
 package line
 
 import (
+	"strings"
+
 	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -8,7 +10,9 @@ import (
 func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn) *linebot.BubbleContainer {
 	var btnAction linebot.TemplateAction
 	if btnType == VideoLink {
-		btnAction = linebot.NewURIAction("觀看影片", work.Video)
+		// video id will be the last part of the thumbnail url
+		id := strings.Split(work.Thumbnail, "=")[3]
+		btnAction = linebot.NewPostbackAction("觀看影片", "video_id="+id, "", "", "", "")
 	} else if btnType == VideoDate {
 		btnAction = linebot.NewPostbackAction("更新心得", "type=update_reflection&date="+work.DateTime, "", "", "openKeyboard", "")
 	}

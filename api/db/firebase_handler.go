@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -12,7 +13,8 @@ import (
 
 func NewFirebaseHandler() (*FirebaseHandler, error) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIALS_FILE"))
+	fmt.Printf("Firebase credentials file: %s\n", os.Getenv("FIREBASE_CREDENTIAL"))
+	sa := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIAL"))
 	conf := &firebase.Config{ProjectID: os.Getenv("FIREBASE_PROJECT_ID")}
 	app, err := firebase.NewApp(ctx, conf, sa)
 	if err != nil {
