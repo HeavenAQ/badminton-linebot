@@ -79,7 +79,7 @@ func (handler *LineBotHandler) PromptHandednessSelection(replyToken string) (*li
 
 func (handler *LineBotHandler) SendVideoMessage(replyToken string, videoId string) (*linebot.BasicResponse, error) {
 	video := "https://drive.google.com/uc?id=" + videoId + "&export=download"
-	thumbnail := "https://drive.google.com/thumbnail?sz=w1080&id=" + videoId
+	thumbnail := "https://lh3.googleusercontent.com/d/" + videoId + "=w1080?authuser=0"
 	return handler.bot.ReplyMessage(
 		replyToken,
 		linebot.NewVideoMessage(video, thumbnail),

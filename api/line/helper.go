@@ -1,7 +1,6 @@
 package line
 
 import (
-	"fmt"
 	"slices"
 	"sort"
 	"strings"
@@ -15,13 +14,14 @@ import (
 func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn) *linebot.BubbleContainer {
 	var btnAction linebot.TemplateAction
 	if btnType == VideoLink {
-		// video id will be the last part of the thumbnail url
-		id := strings.Split(work.Thumbnail, "=")[3]
-		btnAction = linebot.NewPostbackAction("觀看影片", "video_id="+id, "", "", "", "")
+		// video id will be the 4th element in the thumbnail url
+		id := strings.Split(work.Thumbnail, "/")[4]
+		// it will followed by its width, so we need to split it again
+		idNoWidth := strings.Split(id, "=")[0]
+		btnAction = linebot.NewPostbackAction("觀看影片", "video_id="+idNoWidth, "", "", "", "")
 	} else if btnType == VideoDate {
 		btnAction = linebot.NewPostbackAction("更新心得", "type=update_reflection&date="+work.DateTime, "", "", "openKeyboard", "")
 	}
-	fmt.Print("work.Thumbnail: ", work.Thumbnail)
 
 	return &linebot.BubbleContainer{
 		Type: "bubble",
@@ -38,11 +38,10 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn
 			},
 		},
 		Hero: &linebot.ImageComponent{
-			Type:        "image",
-			URL:         work.Thumbnail,
-			Size:        "full",
-			AspectRatio: "20:13",
-			AspectMode:  "cover",
+			Type:       "image",
+			URL:        work.Thumbnail,
+			Size:       "full",
+			AspectMode: "cover",
 		},
 		Body: &linebot.BoxComponent{
 			Type:   "box",

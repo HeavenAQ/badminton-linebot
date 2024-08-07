@@ -66,7 +66,7 @@ func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPor
 	work := Work{
 		DateTime:   driveFile.Name,
 		Reflection: "尚未填寫心得",
-		Thumbnail:  "https://drive.google.com/thumbnail?authuser=0&sz=w1080&id=" + id,
+		Thumbnail:  "https://lh3.googleusercontent.com/d/" + id + "=w1080?authuser=0",
 		Video:      "https://drive.google.com/uc?id=" + id + "&export=download",
 	}
 	(*userPortfolio)[date] = work
