@@ -1,0 +1,55 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - moe
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: moe-linebot
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authorize Google Cloud SDK
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Build and push Docker image
+        run: |-
+          gcloud builds submit \
+            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/moe-linebot
+
+      - name: Deploy to Cloud Run
+        env:
+          CHANNEL_SECRET: ${{ secrets.LINE_CHANNEL_SECRET }}
+          CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+          GOOGLE_DRIVE_ROOT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_USERS: ${{ secrets.FIREBASE_USERS }}
+          FIREBASE_SESSIONS: ${{ secrets.FIREBASE_SESSIONS }}
+        run: |
+          gcloud run deploy moe-linebot \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/moe-linebot \
+            --platform managed \
+            --region asia-east1 \
+            --allow-unauthenticated \
+            --service-account ${{ secrets.GCP_SA_EMAIL }} \
+            --set-env-vars CHANNEL_SECRET=${{ secrets.LINE_CHANNEL_SECRET }},CHANNEL_TOKEN=${{ secrets.LINE_CHANNEL_TOKEN }},GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GOOGLE_DRIVE_CREDENTIALS=${{ secrets.GOOGLE_DRIVE_CREDENTIALS }},GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }},FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }},FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }},FIREBASE_USERS=${{ secrets.FIREBASE_USERS }},FIREBASE_SESSIONS=${{ secrets.FIREBASE_SESSIONS }}

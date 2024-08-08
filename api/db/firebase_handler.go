@@ -2,25 +2,34 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"github.com/HeavenAQ/api/secret"
 	"google.golang.org/api/option"
 )
 
 func NewFirebaseHandler() (*FirebaseHandler, error) {
 	ctx := context.Background()
-	fmt.Printf("Firebase credentials file: %s\n", os.Getenv("FIREBASE_CREDENTIAL"))
-	sa := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIAL"))
+
+	// get firevbase credentials from secret manager
+	secretName := secret.GetSecretNameString(os.Getenv("FIREBASE_CREDENTIALS"))
+	firebaseCredentials, err := secret.AccessSecretVersion(secretName)
+	if err != nil {
+		return nil, err
+	}
+
+	// initialize firebase app
+	sa := option.WithCredentialsJSON(firebaseCredentials)
 	conf := &firebase.Config{ProjectID: os.Getenv("FIREBASE_PROJECT_ID")}
 	app, err := firebase.NewApp(ctx, conf, sa)
 	if err != nil {
 		return nil, err
 	}
 
+	// instantiate firestore client
 	client, err := app.Firestore(ctx)
 	if err != nil {
 		log.Fatal("Error initializing firebase database client:", err)

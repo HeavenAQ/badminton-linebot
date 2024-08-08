@@ -12,6 +12,8 @@ require (
 	google.golang.org/api v0.190.0
 )
 
+require cloud.google.com/go/secretmanager v1.13.5 // indirect
+
 require (
 	cloud.google.com/go v0.115.0 // indirect
 	cloud.google.com/go/auth v0.7.3 // indirect
