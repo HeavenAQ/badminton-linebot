@@ -19,7 +19,7 @@ func main() {
 	app := app.NewApp()
 	http.HandleFunc("/callback", app.HandleCallback)
 
-	app.InfoLogger.Println("\n\tServer started on port 3000")
+	app.InfoLogger.Println("\n\tServer started on port " + os.Getenv("PORT"))
 	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
 		log.Fatal(err)
 	}

@@ -11,17 +11,22 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn) *linebot.BubbleContainer {
-	var btnAction linebot.TemplateAction
-	if btnType == VideoLink {
-		// video id will be the 4th element in the thumbnail url
-		id := strings.Split(work.Thumbnail, "/")[4]
-		// it will followed by its width, so we need to split it again
-		idNoWidth := strings.Split(id, "=")[0]
-		btnAction = linebot.NewPostbackAction("觀看影片", "video_id="+idNoWidth, "", "", "", "")
-	} else if btnType == VideoDate {
-		btnAction = linebot.NewPostbackAction("更新心得", "type=update_reflection&date="+work.DateTime, "", "", "openKeyboard", "")
-	}
+func createViewVideoAction(linkWithID string) *linebot.PostbackAction {
+	// video id will be the 4th element in the thumbnail url
+	id := strings.Split(linkWithID, "/")[4]
+	// it will followed by its width, so we need to split it again
+	idNoWidth := strings.Split(id, "=")[0]
+	return linebot.NewPostbackAction("觀看影片", "video_id="+idNoWidth, "", "", "", "")
+}
+
+func createUpdateReflectionAction(date string) *linebot.PostbackAction {
+	return linebot.NewPostbackAction("更新心得", "type=update_reflection&date="+date, "", "", "openKeyboard", "")
+}
+
+func (handler *LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleContainer {
+	// create view video and update reflection buttons
+	viewVideoBtn := createViewVideoAction(work.Thumbnail)
+	updateReflectionBtn := createUpdateReflectionAction(work.DateTime)
 
 	return &linebot.BubbleContainer{
 		Type: "bubble",
@@ -56,13 +61,19 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, btnType CarouselBtn
 			},
 		},
 		Footer: &linebot.BoxComponent{
-			Type:   "box",
-			Layout: "horizontal",
+			Type:    "box",
+			Layout:  "vertical",
+			Spacing: "sm",
 			Contents: []linebot.FlexComponent{
 				&linebot.ButtonComponent{
 					Type:   "button",
 					Style:  "primary",
-					Action: btnAction,
+					Action: updateReflectionBtn,
+				},
+				&linebot.ButtonComponent{
+					Type:   "button",
+					Style:  "link",
+					Action: viewVideoBtn,
 				},
 			},
 		},
@@ -96,13 +107,13 @@ func (handler *LineBotHandler) sortWorks(works map[string]db.Work) []db.Work {
 	return sortedWorks
 }
 
-func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skill, carouselBtn CarouselBtn) ([]*linebot.FlexMessage, error) {
+func (handler *LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebot.FlexMessage, error) {
 	items := []*linebot.BubbleContainer{}
 	carouselItems := []*linebot.FlexMessage{}
 	sortedWorks := handler.sortWorks(works)
 
 	for _, work := range sortedWorks {
-		items = append(items, handler.getCarouselItem(work, carouselBtn))
+		items = append(items, handler.getCarouselItem(work))
 
 		// since the carousel can only contain 10 items, we need to split the works into multiple carousels in order to display all of them
 		if len(items) == 10 {
@@ -121,7 +132,7 @@ func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skil
 	return carouselItems, nil
 }
 
-func (handler *LineBotHandler) replyViewPortfolioError(works map[string]db.Work, event *linebot.Event, msg string) error {
+func (handler *LineBotHandler) replyViewPortfolioError(event *linebot.Event, msg string) error {
 	_, err := handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
 	if err != nil {
 		return err

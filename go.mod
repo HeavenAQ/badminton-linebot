@@ -8,11 +8,13 @@ require (
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/joho/godotenv v1.5.1
 	github.com/line/line-bot-sdk-go/v7 v7.21.0
-	golang.org/x/oauth2 v0.22.0
 	google.golang.org/api v0.190.0
 )
 
-require cloud.google.com/go/secretmanager v1.13.5 // indirect
+require (
+	cloud.google.com/go/secretmanager v1.13.5
+	golang.org/x/oauth2 v0.22.0 // indirect
+)
 
 require (
 	cloud.google.com/go v0.115.0 // indirect

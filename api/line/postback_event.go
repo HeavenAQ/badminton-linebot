@@ -11,7 +11,7 @@ import (
 func (handler *LineBotHandler) getSkillQuickReplyItems(actionType Action) *linebot.QuickReplyItems {
 	items := []*linebot.QuickReplyButton{}
 	userAction := UserActionPostback{Type: actionType}
-	replyAction := handler.getQuickReplyAction(actionType, Lift)
+	replyAction := handler.getQuickReplyAction()
 
 	for _, skill := range []Skill{Lift, Drop, Netplay, Clear, Footwork} {
 		userAction.Skill = skill
@@ -25,7 +25,7 @@ func (handler *LineBotHandler) getSkillQuickReplyItems(actionType Action) *lineb
 
 type ReplyAction func(userAction UserActionPostback) linebot.QuickReplyAction
 
-func (handler *LineBotHandler) getQuickReplyAction(actionType Action, skill Skill) ReplyAction {
+func (handler *LineBotHandler) getQuickReplyAction() ReplyAction {
 	return func(userAction UserActionPostback) linebot.QuickReplyAction {
 		return linebot.NewPostbackAction(
 			userAction.Skill.ChnString(),
@@ -97,13 +97,13 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 		}
 
 		// reply user with error messages
-		handler.replyViewPortfolioError(works, event, msg)
+		handler.replyViewPortfolioError(event, msg)
 	}
 
 	// generate carousels from works
-	carousels, err := handler.getCarousels(works, skill, carouselBtn)
+	carousels, err := handler.getCarousels(works)
 	if err != nil {
-		handler.replyViewPortfolioError(works, event, err.Error())
+		handler.replyViewPortfolioError(event, err.Error())
 		return errors.New("\n\tError getting carousels: " + err.Error())
 	}
 
