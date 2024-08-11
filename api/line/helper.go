@@ -133,46 +133,48 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 	actionUrls := map[db.Handedness]map[Skill][]string{
 		db.Right: {
 			Lift: []string{
-				"https://www.youtube.com/watch?v=lenLFoRFPlk&list=PLZEILcK2CNCvVRym5xnKSFGFHmD13wQhM",
+				"https://youtu.be/6T6zMCKc6Mw",
 				"https://youtu.be/k9RejtgoatA",
+				"https://youtu.be/4XVJKG6KwlI",
+				"https://youtu.be/g58fyhMkRD4",
 			},
 			Drop: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/Uxwi7bWgSLs",
 			},
 			Netplay: []string{
 				"https://tmp.com",
 				"https://tmp.com",
 			},
 			Clear: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/nO3wo9VA9jk",
 			},
 			Footwork: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/rVnG-unhyLk",
+				"https://youtu.be/NLVADFXlmc0",
 			},
 		},
 		db.Left: {
 			Lift: []string{
 				"https://youtu.be/ah9ZE9KNFpI",
 				"https://youtu.be/JKbQSG27vkk",
+				"https://youtu.be/ah9ZE9KNFpI",
+				"https://youtu.be/JKbQSG27vkk",
 			},
 			Drop: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/MMLTZhhZ1ZI",
+				"https://youtu.be/IY5hGLqSg9o",
 			},
 			Netplay: []string{
 				"https://tmp.com",
 				"https://tmp.com",
 			},
 			Clear: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/0_w5GZs0cjU",
+				"https://youtu.be/XtQfdYtDRJ0",
 			},
 			Footwork: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/mzJk9Z71fc4",
+				"https://youtu.be/5mZI3pKokMA",
 			},
 		},
 	}
