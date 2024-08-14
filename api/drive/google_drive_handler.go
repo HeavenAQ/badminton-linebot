@@ -7,20 +7,26 @@ import (
 	"os"
 	"time"
 
+	"github.com/HeavenAQ/api/secret"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
 
 func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 	ctx := context.Background()
-	srv, err := drive.NewService(ctx, option.WithCredentialsFile(os.Getenv("GOOGLE_CREDENTIALS")))
+
+	// get google credentials from secret manager
+	secretName := secret.GetSecretNameString(os.Getenv("GOOGLE_DRIVE_CREDENTIALS"))
+	googleDriveCredentials, err := secret.AccessSecretVersion(secretName)
+
+	// init google drive service
+	srv, err := drive.NewService(ctx, option.WithCredentialsJSON(googleDriveCredentials))
 	if err != nil {
 		return nil, err
 	}
 
 	return &GoogleDriveHandler{
-		srv,
-		os.Getenv("GOOGLE_ROOT_FOLDER_ID"),
+		srv, os.Getenv("GOOGLE_DRIVE_ROOT_FOLDER_ID"),
 	}, nil
 }
 

@@ -83,7 +83,7 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, userState db.UserSt
 		Type: "bubble",
 		Hero: &linebot.ImageComponent{
 			Type:        "image",
-			URL:         "https://drive.google.com/thumbnail?authuser=0&sz=w1080&id=" + work.SkeletonVideo,
+			URL:         "https://lh3.googleusercontent.com/d/" + work.SkeletonVideo + "=w1080?authuser=0",
 			Size:        "full",
 			AspectRatio: "20:13",
 			AspectMode:  "cover",
@@ -230,7 +230,7 @@ func (handler *LineBotHandler) sortWorks(works map[string]db.Work) []db.Work {
 	return sortedWorks
 }
 
-func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skill, userState db.UserState) ([]*linebot.FlexMessage, error) {
+func (handler *LineBotHandler) getCarousels(works map[string]db.Work, userState db.UserState) ([]*linebot.FlexMessage, error) {
 	items := []*linebot.BubbleContainer{}
 	carouselItems := []*linebot.FlexMessage{}
 	sortedWorks := handler.sortWorks(works)
@@ -254,7 +254,7 @@ func (handler *LineBotHandler) getCarousels(works map[string]db.Work, skill Skil
 	return carouselItems, nil
 }
 
-func (handler *LineBotHandler) replyViewPortfolioError(works map[string]db.Work, event *linebot.Event, msg string) error {
+func (handler *LineBotHandler) replyViewPortfolioError(event *linebot.Event, msg string) error {
 	_, err := handler.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
 	if err != nil {
 		return err

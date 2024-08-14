@@ -11,7 +11,7 @@ import (
 func (handler *LineBotHandler) getSkillQuickReplyItems(actionType Action) *linebot.QuickReplyItems {
 	items := []*linebot.QuickReplyButton{}
 	userAction := UserActionPostback{Type: actionType}
-	replyAction := handler.getQuickReplyAction(actionType, Serve)
+	replyAction := handler.getQuickReplyAction()
 
 	for _, skill := range []Skill{Serve, Smash, Clear} {
 		userAction.Skill = skill
@@ -25,7 +25,7 @@ func (handler *LineBotHandler) getSkillQuickReplyItems(actionType Action) *lineb
 
 type ReplyAction func(userAction UserActionPostback) linebot.QuickReplyAction
 
-func (handler *LineBotHandler) getQuickReplyAction(actionType Action, skill Skill) ReplyAction {
+func (handler *LineBotHandler) getQuickReplyAction() ReplyAction {
 	return func(userAction UserActionPostback) linebot.QuickReplyAction {
 		return linebot.NewPostbackAction(
 			userAction.Skill.ChnString(),
@@ -75,7 +75,7 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 	for _, urlID := range urlIDs {
 		msgs = append(msgs, linebot.NewVideoMessage(
 			"https://drive.google.com/uc?id="+urlID+"&export=download",
-			"https://drive.google.com/thumbnail?sz=w1080&id="+urlID,
+			"https://lh3.googleusercontent.com/d/"+urlID+"=w1080?authuser=0",
 		))
 	}
 
@@ -99,13 +99,13 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 		}
 
 		// reply user with error messages
-		handler.replyViewPortfolioError(works, event, msg)
+		handler.replyViewPortfolioError(event, msg)
 	}
 
 	// generate carousels from works
-	carousels, err := handler.getCarousels(works, skill, userState)
+	carousels, err := handler.getCarousels(works, userState)
 	if err != nil {
-		handler.replyViewPortfolioError(works, event, err.Error())
+		handler.replyViewPortfolioError(event, err.Error())
 		return errors.New("\n\tError getting carousels: " + err.Error())
 	}
 
