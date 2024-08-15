@@ -32,7 +32,7 @@ jobs:
       - name: Build and push Docker image
         run: |-
           gcloud builds submit \
-            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/moe-linebot
+            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/nstc-linebot
 
       - name: Deploy to Cloud Run
         env:
@@ -46,8 +46,8 @@ jobs:
           FIREBASE_USERS: ${{ secrets.FIREBASE_USERS }}
           FIREBASE_SESSIONS: ${{ secrets.FIREBASE_SESSIONS }}
         run: |
-          gcloud run deploy moe-linebot \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/moe-linebot \
+          gcloud run deploy nstc-linebot \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/nstc-linebot \
             --platform managed \
             --region asia-east1 \
             --allow-unauthenticated \
