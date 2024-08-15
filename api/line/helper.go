@@ -153,15 +153,13 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/Uxwi7bWgSLs",
 			},
 			Netplay: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/g4PPfjtOwOg",
 			},
 			Clear: []string{
 				"https://youtu.be/nO3wo9VA9jk",
 			},
 			Footwork: []string{
-				"https://youtu.be/rVnG-unhyLk",
-				"https://youtu.be/NLVADFXlmc0",
+				"https://youtu.be/fJXmbe5pAf8",
 			},
 		},
 		db.Left: {
@@ -176,16 +174,16 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/IY5hGLqSg9o",
 			},
 			Netplay: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/VUFycN7y-8w",
+				"https://youtu.be/ygC7l1OeyBo",
 			},
 			Clear: []string{
 				"https://youtu.be/0_w5GZs0cjU",
 				"https://youtu.be/XtQfdYtDRJ0",
 			},
 			Footwork: []string{
-				"https://youtu.be/mzJk9Z71fc4",
-				"https://youtu.be/5mZI3pKokMA",
+				"https://youtu.be/ZvVVbIpzSIQ",
+				"https://youtu.be/WDJUIe5LDrE",
 			},
 		},
 	}
