@@ -171,6 +171,7 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData, ses
 			Skill:        session.Skill,
 		})
 		app.Bot.ResolveAddReflection(event, user, line.SkillStrToEnum(session.Skill), data[1][1])
+		app.updateUserState(user.Id, db.WritingReflection)
 	} else {
 		app.handleUserAction(event, user, data)
 	}
@@ -210,6 +211,9 @@ func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [
 		app.Bot.SendDefaultErrorReply(replyToken)
 		return
 	}
+
+	// update user session skill
+	app.Db.UpdateSessionUserSkill(user.Id, userAction.Skill.String())
 }
 
 func (app *App) ResolveUserAction(event *linebot.Event, user *db.UserData, action line.UserActionPostback) error {
