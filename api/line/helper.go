@@ -159,7 +159,7 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/nO3wo9VA9jk",
 			},
 			Footwork: []string{
-				"https://youtu.be/O7uS6d-C108",
+				"https://youtu.be/IPl7-mCESfs",
 			},
 		},
 		db.Left: {
@@ -182,8 +182,8 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/XtQfdYtDRJ0",
 			},
 			Footwork: []string{
-				"https://youtu.be/ZvVVbIpzSIQ",
-				"https://youtu.be/9Uqs4h2VW-k",
+				"https://youtu.be/9i_5PgCYgts",
+				"https://youtu.be/AZtvW9faDA8",
 			},
 		},
 	}
