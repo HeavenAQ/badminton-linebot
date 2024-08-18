@@ -70,7 +70,6 @@ func (app *App) resetUserSession(userId string) {
 }
 
 func (app *App) downloadVideo(event *linebot.Event) (io.Reader, error) {
-	app.InfoLogger.Println("\n\tDownloading video...")
 	resp, err := app.Bot.GetVideoContent(event)
 	if err != nil {
 		return nil, err
@@ -135,9 +134,9 @@ func (app *App) updateUserReflection(event *linebot.Event, user *db.UserData, se
 
 func (app *App) handleVideoMessage(event *linebot.Event, user *db.UserData, session *db.UserSession) {
 	replyToken := event.ReplyToken
-	app.InfoLogger.Println("\n\tDownloading video:")
 
 	// download video from line
+	app.InfoLogger.Println("\n\tDownloading video...")
 	blob, err := app.downloadVideo(event)
 	if err != nil {
 		app.WarnLogger.Println("\n\tError downloading video:", err)
