@@ -3,82 +3,12 @@ package line
 import (
 	"slices"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/HeavenAQ/api/db"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"golang.org/x/exp/maps"
 )
-
-func createViewVideoAction(linkWithID string) *linebot.PostbackAction {
-	// video id will be the 4th element in the thumbnail url
-	id := strings.Split(linkWithID, "/")[4]
-	// it will followed by its width, so we need to split it again
-	idNoWidth := strings.Split(id, "=")[0]
-	return linebot.NewPostbackAction("觀看影片", "video_id="+idNoWidth, "", "", "", "")
-}
-
-func createUpdateReflectionAction(date string) *linebot.PostbackAction {
-	return linebot.NewPostbackAction("更新心得", "type=update_reflection&date="+date, "", "", "openKeyboard", "")
-}
-
-func (handler *LineBotHandler) getCarouselItem(work db.Work) *linebot.BubbleContainer {
-	// create view video and update reflection buttons
-	viewVideoBtn := createViewVideoAction(work.Thumbnail)
-	updateReflectionBtn := createUpdateReflectionAction(work.DateTime)
-
-	return &linebot.BubbleContainer{
-		Type: "bubble",
-		Header: &linebot.BoxComponent{
-			Type:   "box",
-			Layout: "vertical",
-			Contents: []linebot.FlexComponent{
-				&linebot.TextComponent{
-					Type:   "text",
-					Weight: "bold",
-					Size:   "xl",
-					Text:   "日期：" + work.DateTime[:10],
-				},
-			},
-		},
-		Hero: &linebot.ImageComponent{
-			Type:       "image",
-			URL:        work.Thumbnail,
-			Size:       "full",
-			AspectMode: "cover",
-		},
-		Body: &linebot.BoxComponent{
-			Type:   "box",
-			Layout: "horizontal",
-			Contents: []linebot.FlexComponent{
-				&linebot.TextComponent{
-					Type: "text",
-					Size: "md",
-					Text: work.Reflection,
-					Wrap: true,
-				},
-			},
-		},
-		Footer: &linebot.BoxComponent{
-			Type:    "box",
-			Layout:  "vertical",
-			Spacing: "sm",
-			Contents: []linebot.FlexComponent{
-				&linebot.ButtonComponent{
-					Type:   "button",
-					Style:  "primary",
-					Action: updateReflectionBtn,
-				},
-				&linebot.ButtonComponent{
-					Type:   "button",
-					Style:  "link",
-					Action: viewVideoBtn,
-				},
-			},
-		},
-	}
-}
 
 func (handler *LineBotHandler) insertCarousel(carouselItems []*linebot.FlexMessage, items []*linebot.BubbleContainer) []*linebot.FlexMessage {
 	return append(carouselItems,
@@ -107,13 +37,19 @@ func (handler *LineBotHandler) sortWorks(works map[string]db.Work) []db.Work {
 	return sortedWorks
 }
 
-func (handler *LineBotHandler) getCarousels(works map[string]db.Work) ([]*linebot.FlexMessage, error) {
-	items := []*linebot.BubbleContainer{}
-	carouselItems := []*linebot.FlexMessage{}
+func (handler *LineBotHandler) getCarousels(works map[string]db.Work, userId string, userName string) ([]*linebot.FlexMessage, error) {
+	// sort works by date
 	sortedWorks := handler.sortWorks(works)
 
+	// get profile image
+	profile, _ := handler.bot.GetProfile(userId).Do()
+	userProfileImg := profile.PictureURL
+
+	// create portfolio cards to form a carousel
+	items := []*linebot.BubbleContainer{}
+	carouselItems := []*linebot.FlexMessage{}
 	for _, work := range sortedWorks {
-		items = append(items, handler.getCarouselItem(work))
+		items = append(items, portfolioCardComponent(work, userProfileImg, userName))
 
 		// since the carousel can only contain 10 items, we need to split the works into multiple carousels in order to display all of them
 		if len(items) == 10 {

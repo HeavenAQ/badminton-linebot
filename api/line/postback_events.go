@@ -101,7 +101,7 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 	}
 
 	// generate carousels from works
-	carousels, err := handler.getCarousels(works)
+	carousels, err := handler.getCarousels(works, user.Id, user.Name)
 	if err != nil {
 		handler.replyViewPortfolioError(event, err.Error())
 		return errors.New("\n\tError getting carousels: " + err.Error())
