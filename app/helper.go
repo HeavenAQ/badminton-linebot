@@ -155,6 +155,13 @@ func (app *App) handleVideoMessage(event *linebot.Event, user *db.UserData, sess
 		return
 	}
 
+	// Poll for the thumbnail to be ready
+	app.InfoLogger.Println("\n\tWaiting for thumbnail...")
+	err = app.Drive.WaitForThumbnail(driveFile.Id)
+	if err != nil {
+		app.WarnLogger.Println("\n\tError waiting for thumbnail:", err)
+	}
+
 	// update user portfolio
 	userPortfolio := app.getUserPortfolio(user, session.Skill)
 	err = app.Db.CreateUserPortfolioVideo(user, userPortfolio, session, driveFile)

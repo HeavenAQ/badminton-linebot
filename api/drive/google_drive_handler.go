@@ -2,6 +2,7 @@ package drive
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -96,4 +97,28 @@ func (handler *GoogleDriveHandler) UploadVideo(folderId string, blob io.Reader) 
 	}
 
 	return driveFile, nil
+}
+
+func (handler *GoogleDriveHandler) WaitForThumbnail(fileId string) error {
+	// Initial delay and max attempts for polling
+	delay := 2 * time.Second
+	maxAttempts := 10
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		// Retrieve the file metadata
+		file, err := handler.srv.Files.Get(fileId).Fields("thumbnailLink").Do()
+		if err != nil {
+			return err
+		}
+
+		// Check if the thumbnailLink is available
+		if file.ThumbnailLink != "" {
+			return nil
+		}
+
+		// Wait before retrying
+		time.Sleep(delay)
+	}
+
+	return fmt.Errorf("thumbnail generation timed out for file ID %s", fileId)
 }
