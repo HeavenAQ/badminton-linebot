@@ -18,6 +18,7 @@ COPY --from=builder /app/main .
 # download the tool needed to run the app
 RUN apk update
 RUN apk add libc6-compat
+RUN apk add --no-cache ffmpeg bash
 
 EXPOSE $PORT
 CMD ["/root/main"]
