@@ -14,7 +14,7 @@ import (
 	"github.com/HeavenAQ/api/db"
 	"github.com/go-resty/resty/v2"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
-	"github.com/mowshon/moviego"
+	ffmpeg_go "github.com/u2takey/ffmpeg-go"
 	"google.golang.org/api/drive/v3"
 )
 
@@ -75,30 +75,42 @@ func sendVideoUploadedReply(app App, event *linebot.Event, session *db.UserSessi
 
 	return err
 }
+
 func resizeVideo(app App, blob io.Reader, user *db.UserData) (string, error) {
 	app.InfoLogger.Println("\n\tResizing video:")
 
-	filename := user.Id + ".mp4"
+	filename := "/tmp/" + user.Id + ".mp4"
 	file, err := os.Create(filename)
 	if err != nil {
 		return "", errors.New("failed to create tmp file for resizing")
 	}
 	defer file.Close()
-	io.Copy(file, blob)
 
-	first, err := moviego.Load(filename)
-	if err != nil {
-		return "", errors.New("failed to load video for resizing")
+	// Stream the video directly to disk to avoid memory duplication
+	if _, err := io.Copy(file, blob); err != nil {
+		return "", errors.New("failed to write video blob to disk")
 	}
 
-	err = first.Resize(1080, 1920).Output("resized" + filename).Run()
+	outputFilename := "/tmp/resized_" + user.Id + ".mp4"
+
+	// Use ffmpeg-go to resize the video
+	err = ffmpeg_go.Input(filename).
+		Filter("scale", ffmpeg_go.Args{"1080:1920"}).
+		Output(outputFilename, ffmpeg_go.KwArgs{"vsync": "0", "threads": "2"}).
+		Run()
 	if err != nil {
 		return "", errors.New("failed to resize video")
 	}
 
-	go os.Remove(filename)
+	// Asynchronously remove the original file
+	go func() {
+		if err := os.Remove(filename); err != nil {
+			app.InfoLogger.Println("Failed to remove temp file:", err)
+		}
+	}()
+
 	app.InfoLogger.Println("\n\tVideo resized successfully.")
-	return "resized" + filename, nil
+	return outputFilename, nil
 }
 
 func analyzeVideo(app App, resizedVideo string, user *db.UserData, session *db.UserSession) (*AnalyzedResult, error) {

@@ -23,7 +23,7 @@ require (
 	cloud.google.com/go/longrunning v0.5.11 // indirect
 	cloud.google.com/go/secretmanager v1.13.6
 	cloud.google.com/go/storage v1.41.0 // indirect
-	github.com/aws/aws-sdk-go v1.38.20 // indirect
+	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -37,7 +37,7 @@ require (
 	github.com/tidwall/gjson v1.14.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/u2takey/ffmpeg-go v0.4.1 // indirect
+	github.com/u2takey/ffmpeg-go v0.5.0 // indirect
 	github.com/u2takey/go-utils v0.3.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
