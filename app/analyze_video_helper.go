@@ -97,7 +97,12 @@ func resizeVideo(app App, blob io.Reader, user *db.UserData) (string, error) {
 	outputFilename := "/tmp/resized_" + user.Id + ".mp4"
 	err = ffmpeg_go.Input(filename).
 		Filter("scale", ffmpeg_go.Args{"1080:1920"}).
-		Output(outputFilename, ffmpeg_go.KwArgs{"vsync": "0", "threads": "1"}).
+		Output(outputFilename, ffmpeg_go.KwArgs{
+			"vsync":   "0",  // avoid audio sync issues
+			"threads": "1",  // use 1 thread to avoid memory issues
+			"b:v":     "1M", // set video bitrate to 1 Mbps
+			"an":      "",   // remove audio
+		}).
 		Run()
 	if err != nil {
 		return "", errors.New("failed to resize video")
