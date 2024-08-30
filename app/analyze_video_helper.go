@@ -191,6 +191,13 @@ func (app *App) resolveUploadVideo(event *linebot.Event, user *db.UserData, sess
 		return
 	}
 
+	// wait the thumbnail to be generated
+	app.InfoLogger.Println("\n\tWaiting for thumbnail...")
+	err = app.Drive.WaitForThumbnail(driveFile.Id)
+	if err != nil {
+		app.WarnLogger.Println("\n\tError waiting for thumbnail:", err)
+	}
+
 	// send video uploaded reply
 	if err := sendVideoUploadedReply(*app, event, session, user); err != nil {
 		uploadError(*app, event, err, "\n\tError sending video uploaded reply:")
