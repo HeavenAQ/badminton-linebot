@@ -77,7 +77,7 @@ func sendVideoUploadedReply(app App, event *linebot.Event, session *db.UserSessi
 }
 
 func resizeVideo(app App, blob io.Reader, user *db.UserData) (string, error) {
-	app.InfoLogger.Println("\n\tResizing video:")
+	app.InfoLogger.Println("\n\tStart Resizing video:")
 
 	filename := "/tmp/" + user.Id + ".mp4"
 	file, err := os.Create(filename)
@@ -87,16 +87,17 @@ func resizeVideo(app App, blob io.Reader, user *db.UserData) (string, error) {
 	defer file.Close()
 
 	// Stream the video directly to disk to avoid memory duplication
+	app.InfoLogger.Println("\n\tCopying video blob to disk")
 	if _, err := io.Copy(file, blob); err != nil {
 		return "", errors.New("failed to write video blob to disk")
 	}
 
-	outputFilename := "/tmp/resized_" + user.Id + ".mp4"
-
 	// Use ffmpeg-go to resize the video
+	app.InfoLogger.Println("\n\tResizing video")
+	outputFilename := "/tmp/resized_" + user.Id + ".mp4"
 	err = ffmpeg_go.Input(filename).
 		Filter("scale", ffmpeg_go.Args{"1080:1920"}).
-		Output(outputFilename, ffmpeg_go.KwArgs{"vsync": "0", "threads": "2"}).
+		Output(outputFilename, ffmpeg_go.KwArgs{"vsync": "0", "threads": "1"}).
 		Run()
 	if err != nil {
 		return "", errors.New("failed to resize video")
@@ -124,6 +125,7 @@ func analyzeVideo(app App, resizedVideo string, user *db.UserData, session *db.U
 	os.Remove(resizedVideo)
 
 	// set up request body with video data
+	app.InfoLogger.Println("\n\tSending video to AI server: " + os.Getenv("GENAI_URL"))
 	date := time.Now().Format("2006-01-02-15-04")
 	filename := user.Id + "_" + session.Skill + "_" + date + ".mp4"
 	baseURL := os.Getenv("GENAI_URL") + "/analyze"
