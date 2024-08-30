@@ -15,10 +15,8 @@ func (handler *LineBotHandler) gePortfolioRating(work db.Work) *linebot.BoxCompo
 	rating := work.Rating
 	contents := []linebot.FlexComponent{}
 	for i := 0; i < 5; i++ {
-		rating -= 20
-
 		var url string
-		if rating >= 0 {
+		if rating >= 20 {
 			url = "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
 		} else {
 			url = "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gray_star_28.png"
@@ -28,10 +26,12 @@ func (handler *LineBotHandler) gePortfolioRating(work db.Work) *linebot.BoxCompo
 			Size: "sm",
 			URL:  url,
 		})
+
+		rating -= 20
 	}
 	contents = append(contents, &linebot.TextComponent{
 		Type:   "text",
-		Text:   fmt.Sprintf("%.1f", work.Rating),
+		Text:   fmt.Sprintf("%.2f", work.Rating),
 		Size:   "sm",
 		Color:  "#8c8c8c",
 		Margin: "md",
