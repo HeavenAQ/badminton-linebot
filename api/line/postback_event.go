@@ -117,6 +117,7 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 
 	_, err = handler.bot.ReplyMessage(event.ReplyToken, sendMsgs...).Do()
 	if err != nil {
+		handler.replyViewPortfolioError(event, err.Error())
 		return err
 	}
 	return nil

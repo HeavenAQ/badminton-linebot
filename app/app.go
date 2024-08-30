@@ -27,9 +27,9 @@ type App struct {
 
 func NewApp() *App {
 	rootFolder := os.Getenv("GOOGLE_ROOT_FOLDER_ID")
-	infoLogger := log.New(log.Writer(), "[INFO] ", log.LstdFlags)
-	errorLogger := log.New(log.Writer(), "[ERROR] ", log.LstdFlags)
-	warnLogger := log.New(log.Writer(), "[WARN] ", log.LstdFlags)
+	infoLogger := log.New(log.Writer(), "[INFO] ", log.LstdFlags|log.Lshortfile)
+	errorLogger := log.New(log.Writer(), "[ERROR] ", log.LstdFlags|log.Lshortfile)
+	warnLogger := log.New(log.Writer(), "[WARN] ", log.LstdFlags|log.Lshortfile)
 
 	db, err := db.NewFirebaseHandler()
 	if err != nil {
@@ -212,7 +212,6 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 	} else {
 		app.Bot.PromptSkillSelection(replyToken, line.ViewExpertVideo, "請選擇要觀看的動作")
 	}
-
 }
 
 func (app *App) handleUserAction(event *linebot.Event, user *db.UserData, data [2][2]string) {

@@ -55,6 +55,11 @@ func updateUserPortfolioVideo(app App, user *db.UserData, session *db.UserSessio
 		aiSuggestions[i] = fmt.Sprintf("%d. %s", i+1, suggestion)
 	}
 
+	// if no suggestions, add a default one
+	if aiSuggestions == nil || len(aiSuggestions) == 0 {
+		aiSuggestions = []string{"動作標準，無須調整"}
+	}
+
 	return app.Db.CreateUserPortfolioVideo(
 		user,
 		userPortfolio,

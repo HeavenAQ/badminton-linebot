@@ -212,7 +212,6 @@ func (handler *LineBotHandler) insertCarousel(carouselItems []*linebot.FlexMessa
 			},
 		),
 	)
-
 }
 
 func (handler *LineBotHandler) sortWorks(works map[string]db.Work) []db.Work {
