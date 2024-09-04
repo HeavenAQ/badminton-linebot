@@ -54,7 +54,7 @@ func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness 
 	return handler.updateUserData(user)
 }
 
-func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File, aiRating float32, aiSuggestions string) error {
+func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File, thumbnailFile *googleDrive.File, aiRating float32, aiSuggestions string) error {
 	id := driveFile.Id
 	date := driveFile.Name
 	work := Work{
@@ -64,6 +64,7 @@ func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPor
 		PreviewNote:   "尚未填寫課前檢視要點",
 		AINote:        aiSuggestions,
 		SkeletonVideo: id,
+		Thumbnail:     thumbnailFile.Id,
 	}
 	(*userPortfolio)[date] = work
 	handler.UpdateUserSession(user.Id, *session)

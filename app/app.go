@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -162,8 +163,10 @@ func (app *App) handlePostbackEvent(event *linebot.Event, user *db.UserData, ses
 
 	if len(data) == 0 {
 		app.WarnLogger.Println("\n\tEmpty postback data")
-	} else if data[0][0] == "video_id" {
-		app.Bot.SendVideoMessage(replyToken, data[0][1])
+	} else if data[0][0] == "video" {
+		var video line.VideoInfo
+		json.Unmarshal([]byte(data[0][1]), &video)
+		app.Bot.SendVideoMessage(replyToken, video)
 	} else if data[0][0] == "handedness" {
 		app.handleHandednessReply(replyToken, user, data[0][1], session)
 	} else if data[1][0] == "date" {

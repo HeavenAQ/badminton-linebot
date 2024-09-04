@@ -3,7 +3,6 @@ package drive
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"time"
@@ -99,21 +98,28 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 	return &userFolders, nil
 }
 
-func (handler *GoogleDriveHandler) UploadVideo(folderId string, base64_encoded_blob string) (*drive.File, error) {
+func (handler *GoogleDriveHandler) UploadVideo(folderId string, videoBlob []byte, thumbnailPath string) (*drive.File, *drive.File, error) {
 	filename := time.Now().Format("2006-01-02-15-04")
-	decoded_blob, err := base64.StdEncoding.DecodeString(base64_encoded_blob)
-	if err != nil {
-		return nil, err
-	}
 
-	blob := bytes.NewReader(decoded_blob)
+	// upload video file to google drive
+	blob := bytes.NewReader(videoBlob)
 	driveFile, err := handler.srv.Files.Create(&drive.File{
 		Name:    filename,
 		Parents: []string{folderId},
 	}).Media(blob).Do()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return driveFile, nil
+	// upload video thumbnail to google drive
+	thumbnailData, err := os.ReadFile(thumbnailPath)
+	thumbnailFile, err := handler.srv.Files.Create(&drive.File{
+		Name:    filename + "_thumbnail",
+		Parents: []string{os.Getenv("GOOGLE_DRIVE_THUMBNAIL_FOLDER_ID")},
+	}).Media(bytes.NewReader(thumbnailData)).Do()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return driveFile, thumbnailFile, nil
 }

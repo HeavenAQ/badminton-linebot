@@ -63,6 +63,7 @@ func (p *Portfolio) GetSkillPortfolio(skill string) map[string]Work {
 
 type Work struct {
 	DateTime      string  `json:"date"`
+	Thumbnail     string  `json:"thumbnail"`
 	SkeletonVideo string  `json:"video"`
 	Rating        float32 `json:"rating"`
 	Reflection    string  `json:"reflection"`

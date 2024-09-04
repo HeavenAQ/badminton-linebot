@@ -61,7 +61,7 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, userState db.UserSt
 			Height: "sm",
 			Action: linebot.NewPostbackAction(
 				"查看影片",
-				"video_id="+work.SkeletonVideo,
+				"video={\"video_id\": \""+work.SkeletonVideo+"\", \"thumbnail_id\": \""+work.Thumbnail+"\"}",
 				"",
 				"",
 				"",
