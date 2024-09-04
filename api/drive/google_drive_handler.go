@@ -91,7 +91,6 @@ func (handler *GoogleDriveHandler) UploadVideo(folderId string, blob io.Reader) 
 		Name:    filename,
 		Parents: []string{folderId},
 	}).Media(blob).Do()
-
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +100,7 @@ func (handler *GoogleDriveHandler) UploadVideo(folderId string, blob io.Reader) 
 
 func (handler *GoogleDriveHandler) WaitForThumbnail(fileId string) error {
 	// Initial delay and max attempts for polling
-	delay := 2 * time.Second
-	maxAttempts := 10
+	maxAttempts := 40
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		// Retrieve the file metadata
@@ -117,7 +115,7 @@ func (handler *GoogleDriveHandler) WaitForThumbnail(fileId string) error {
 		}
 
 		// Wait before retrying
-		time.Sleep(delay)
+		time.Sleep(time.Second)
 	}
 
 	return fmt.Errorf("thumbnail generation timed out for file ID %s", fileId)
