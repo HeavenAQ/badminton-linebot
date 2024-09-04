@@ -261,34 +261,31 @@ func (handler *LineBotHandler) replyViewPortfolioError(event *linebot.Event, msg
 	return nil
 }
 
-func (handler *LineBotHandler) getActionUrlIDs(hand db.Handedness, skill Skill) []string {
+func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []string {
 	actionUrls := map[db.Handedness]map[Skill][]string{
 		db.Right: {
 			Serve: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/YX2zGLY0HmQ",
 			},
 			Smash: []string{
-				"1hLx6Eqgxg9NIUwugZ4XdwR_EiGyog3QO",
-				"1hLx6Eqgxg9NIUwugZ4XdwR_EiGyog3QO",
+				"https://youtu.be/nO3wo9VA9jk",
 			},
 			Clear: []string{
-				"1sHY3a-2rWr_rJEc6PYGUUbtoAgmJ49TW",
-				"1sHY3a-2rWr_rJEc6PYGUUbtoAgmJ49TW",
+				"https://youtu.be/nO3wo9VA9jk",
 			},
 		},
 		db.Left: {
 			Serve: []string{
-				"https://youtu.be/ah9ZE9KNFpI",
-				"https://youtu.be/JKbQSG27vkk",
+				"https://youtu.be/IeI0RPoBBUs",
+				"https://youtu.be/lAYC7QMRcZU",
 			},
 			Smash: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/0_w5GZs0cjU",
+				"https://youtu.be/XtQfdYtDRJ0",
 			},
 			Clear: []string{
-				"https://tmp.com",
-				"https://tmp.com",
+				"https://youtu.be/0_w5GZs0cjU",
+				"https://youtu.be/XtQfdYtDRJ0",
 			},
 		},
 	}
