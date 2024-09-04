@@ -52,4 +52,5 @@ jobs:
             --region asia-east1 \
             --allow-unauthenticated \
             --service-account ${{ secrets.GCP_SA_EMAIL }} \
+            --memory 1Gi \
             --set-env-vars CHANNEL_SECRET=${{ secrets.LINE_CHANNEL_SECRET }},CHANNEL_TOKEN=${{ secrets.LINE_CHANNEL_TOKEN }},GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GOOGLE_DRIVE_CREDENTIALS=${{ secrets.GOOGLE_DRIVE_CREDENTIALS }},GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }},FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }},FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }},FIREBASE_USERS=${{ secrets.FIREBASE_USERS }},FIREBASE_SESSIONS=${{ secrets.FIREBASE_SESSIONS }}
