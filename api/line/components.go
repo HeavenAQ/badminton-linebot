@@ -58,7 +58,6 @@ func reflectionComponent(userName string, reflection string) *linebot.BoxCompone
 		Spacing:      "xl",
 		PaddingStart: "20px",
 	}
-
 }
 
 func dateComponent(date string) *linebot.BoxComponent {
@@ -82,12 +81,11 @@ func dateComponent(date string) *linebot.BoxComponent {
 	}
 }
 
-func createViewVideoAction(linkWithID string) *linebot.PostbackAction {
-	// video id will be the 4th element in the thumbnail url
-	id := strings.Split(linkWithID, "/")[4]
-	// it will followed by its width, so we need to split it again
-	idNoWidth := strings.Split(id, "=")[0]
-	return linebot.NewPostbackAction("觀看影片", "video_id="+idNoWidth, "", "", "", "")
+func createViewVideoAction(videoLink string, thumbnailLink string) *linebot.PostbackAction {
+	// video videoID will be the element after videoID= in the link
+	videoID := strings.Split(videoLink, "id=")[1]
+	thumbnailID := strings.Split(thumbnailLink, "id=")[1]
+	return linebot.NewPostbackAction("觀看影片", "video={\"video_id\":\""+videoID+"\","+"\"thumbnail_id\":\""+thumbnailID+"\"}", "", "", "", "")
 }
 
 func createUpdateReflectionAction(date string) *linebot.PostbackAction {
@@ -95,7 +93,7 @@ func createUpdateReflectionAction(date string) *linebot.PostbackAction {
 }
 
 func portfolioCardComponent(work db.Work, userProfileImg string, userName string) *linebot.BubbleContainer {
-	viewVideoBtn := createViewVideoAction(work.Thumbnail)
+	viewVideoBtn := createViewVideoAction(work.Video, work.Thumbnail)
 	updateReflectionBtn := createUpdateReflectionAction(work.DateTime)
 
 	return &linebot.BubbleContainer{

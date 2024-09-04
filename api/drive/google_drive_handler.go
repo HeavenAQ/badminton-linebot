@@ -1,8 +1,8 @@
 package drive
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -85,38 +85,30 @@ func (handler *GoogleDriveHandler) CreateUserFolders(userId string, userName str
 	return &userFolders, nil
 }
 
-func (handler *GoogleDriveHandler) UploadVideo(folderId string, blob io.Reader) (*drive.File, error) {
+func (handler *GoogleDriveHandler) UploadVideo(folderId string, blob io.Reader, thumbnailPath string) (*drive.File, *drive.File, error) {
+	// upload video first
 	filename := time.Now().Format("2006-01-02-15-04")
 	driveFile, err := handler.srv.Files.Create(&drive.File{
 		Name:    filename,
 		Parents: []string{folderId},
 	}).Media(blob).Do()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return driveFile, nil
-}
-
-func (handler *GoogleDriveHandler) WaitForThumbnail(fileId string) error {
-	// Initial delay and max attempts for polling
-	maxAttempts := 40
-
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		// Retrieve the file metadata
-		file, err := handler.srv.Files.Get(fileId).Fields("thumbnailLink").Do()
-		if err != nil {
-			return err
-		}
-
-		// Check if the thumbnailLink is available
-		if file.ThumbnailLink != "" {
-			return nil
-		}
-
-		// Wait before retrying
-		time.Sleep(time.Second)
+	// load thumbnail as bytes
+	thumbnail, err := os.Open(thumbnailPath)
+	if err != nil {
+		return nil, nil, err
 	}
+	defer thumbnail.Close()
+	thumbnailData := new(bytes.Buffer)
+	_, err = io.Copy(thumbnailData, thumbnail)
 
-	return fmt.Errorf("thumbnail generation timed out for file ID %s", fileId)
+	// upload thumbnail
+	thumbnailFile, err := handler.srv.Files.Create(&drive.File{
+		Name:    filename + "_thumbnail",
+		Parents: []string{os.Getenv("GOOGLE_DRIVE_THUMBNAIL_FOLDER_ID")},
+	}).Media(thumbnailData).Do()
+	return driveFile, thumbnailFile, nil
 }

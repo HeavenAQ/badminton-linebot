@@ -8,7 +8,14 @@ require (
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/joho/godotenv v1.5.1
 	github.com/line/line-bot-sdk-go/v7 v7.21.0
+	github.com/u2takey/ffmpeg-go v0.5.0
 	google.golang.org/api v0.190.0
+)
+
+require (
+	github.com/aws/aws-sdk-go v1.55.5 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/u2takey/go-utils v0.3.1 // indirect
 )
 
 require (

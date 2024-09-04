@@ -60,14 +60,13 @@ func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness 
 	return handler.updateUserData(user)
 }
 
-func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File) error {
-	id := driveFile.Id
+func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File, thumbnailFile *googleDrive.File) error {
 	date := time.Now().Format("2006-01-02-15-04")
 	work := Work{
 		DateTime:   driveFile.Name,
 		Reflection: "尚未填寫心得",
-		Thumbnail:  "https://lh3.googleusercontent.com/d/" + id + "=w1080?authuser=0",
-		Video:      "https://drive.google.com/uc?id=" + id + "&export=download",
+		Thumbnail:  "https://drive.usercontent.google.com/download?id=" + thumbnailFile.Id,
+		Video:      "https://drive.google.com/uc?export=download&id=" + driveFile.Id,
 	}
 	(*userPortfolio)[date] = work
 	handler.UpdateUserSession(user.Id, *session)

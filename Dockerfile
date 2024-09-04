@@ -15,13 +15,15 @@ FROM alpine:latest
 WORKDIR /root
 COPY --from=builder /app/main .
 
-# Timezone setting
-ENV TZ="Asia/Taipei"
-RUN date
-
 # download the tool needed to run the app
 RUN apk update
 RUN apk add libc6-compat
+RUN apk add --no-cache ffmpeg bash
+RUN apk add --no-cache tzdata
+
+# set timezone to Asia/Taipei
+ENV TZ="Asia/Taipei"
+RUN date
 
 EXPOSE $PORT
 CMD ["/root/main"]

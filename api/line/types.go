@@ -110,3 +110,8 @@ const (
 	VideoLink CarouselBtn = iota
 	VideoDate
 )
+
+type VideoInfo struct {
+	VideoId     string "json:\"video_id\""
+	ThumbnailId string "json:\"thumbnail_id\""
+}
