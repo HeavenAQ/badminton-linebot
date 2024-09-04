@@ -3,7 +3,6 @@ package drive
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -11,29 +10,6 @@ import (
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
-
-func (handler *GoogleDriveHandler) WaitForThumbnail(fileId string) error {
-	// Initial delay and max attempts for polling
-	maxAttempts := 40
-
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		// Retrieve the file metadata
-		file, err := handler.srv.Files.Get(fileId).Fields("thumbnailLink").Do()
-		if err != nil {
-			return err
-		}
-
-		// Check if the thumbnailLink is available
-		if file.ThumbnailLink != "" {
-			return nil
-		}
-
-		// Wait before retrying
-		time.Sleep(time.Second)
-	}
-
-	return fmt.Errorf("thumbnail generation timed out for file ID %s", fileId)
-}
 
 func NewGoogleDriveHandler() (*GoogleDriveHandler, error) {
 	ctx := context.Background()
