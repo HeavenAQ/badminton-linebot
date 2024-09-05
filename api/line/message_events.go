@@ -43,14 +43,15 @@ func (handler *LineBotHandler) SendInstruction(replyToken string) (*linebot.Basi
 	const addPreviewNote = "➡️ 課前動作檢測：課前預習上週動作，並記錄需進步的要點\n\n"
 	const analyzeRecording = "➡️ 分析影片：上傳個人動作錄影，系統將自動產生分析結果\n\n"
 	const addReflection = "➡️ 本週學習反思：新增每周各動作的學習反思\n\n"
-	const note = "⚠️ 每周的學習歷程都需有【影片】才能建檔"
-	const msg = welcome + instruction + portfolio + expertVideo + addPreviewNote + analyzeRecording + addReflection + note
+	const note1 = "✅ 如需查看課程大綱，請輸入「課程大綱」\n\n"
+	const note2 = "⚠️ 每周的學習歷程都需有【影片】才能建檔"
+	const msg = welcome + instruction + portfolio + expertVideo + addPreviewNote + analyzeRecording + addReflection + note1 + note2
 	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
 
 func (handler *LineBotHandler) SendSyllabus(replyToken string) (*linebot.BasicResponse, error) {
 	const syllabus = "課程大綱：\n"
-	const msg = syllabus + "https://test.com"
+	const msg = syllabus + "https://drive.google.com/open?id=1PeWkePHtq30ArcGqZwzWP64olL9F7Tqw&usp=drive_fs"
 	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
 

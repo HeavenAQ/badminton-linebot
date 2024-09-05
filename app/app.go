@@ -139,6 +139,12 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 	case "課前動作檢測":
 		go app.Bot.PromptSkillSelection(replyToken, line.AddPreviewNote, "請選擇要新增課前檢視要點的動作")
 		app.updateUserState(user.Id, db.WritingPreviewNote)
+	case "課程大綱":
+		res, err := app.Bot.SendSyllabus(replyToken)
+		if err != nil {
+			app.WarnLogger.Println("\n\tError sending syllabus: ", err)
+		}
+		app.InfoLogger.Println("\n\tSyllabus sent. Response from line: ", res)
 	default:
 		isWritingReflection := session.UserState == db.WritingReflection
 		isWritingPreviewNote := session.UserState == db.WritingPreviewNote
