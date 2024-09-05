@@ -59,7 +59,7 @@ func (handler *LineBotHandler) SendInstruction(replyToken string) (*linebot.Basi
 
 func (handler *LineBotHandler) SendSyllabus(replyToken string) (*linebot.BasicResponse, error) {
 	const syllabus = "課程大綱：\n"
-	const msg = syllabus + "https://test.com"
+	const msg = syllabus + "https://drive.google.com/open?id=1PZhYfVMgcuw1Jrqxr29qSgldt4GxtE13&usp=drive_fs"
 	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
 
