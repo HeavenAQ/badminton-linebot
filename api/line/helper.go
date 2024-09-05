@@ -19,7 +19,6 @@ func (handler *LineBotHandler) insertCarousel(carouselItems []*linebot.FlexMessa
 			},
 		),
 	)
-
 }
 
 func (handler *LineBotHandler) sortWorks(works map[string]db.Work) []db.Work {
@@ -86,13 +85,13 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/g58fyhMkRD4",
 			},
 			Drop: []string{
-				"https://youtu.be/Uxwi7bWgSLs",
+				"https://youtu.be/ST5citEQZps",
 			},
 			Netplay: []string{
-				"https://youtu.be/g4PPfjtOwOg",
+				"https://youtu.be/mklLfEWPG_U",
 			},
 			Clear: []string{
-				"https://youtu.be/nO3wo9VA9jk",
+				"https://youtu.be/K7EEhEF2vMo",
 			},
 			Footwork: []string{
 				"https://youtu.be/IPl7-mCESfs",
@@ -106,16 +105,16 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/JKbQSG27vkk",
 			},
 			Drop: []string{
-				"https://youtu.be/MMLTZhhZ1ZI",
-				"https://youtu.be/IY5hGLqSg9o",
+				"https://youtu.be/zatTzMKNUgY",
+				"https://youtu.be/BKpO9u9Ci14",
 			},
 			Netplay: []string{
-				"https://youtu.be/VUFycN7y-8w",
-				"https://youtu.be/ygC7l1OeyBo",
+				"https://youtu.be/lWnLgTaiSAY",
+				"https://youtu.be/KkAfJBuYx00",
 			},
 			Clear: []string{
-				"https://youtu.be/0_w5GZs0cjU",
-				"https://youtu.be/XtQfdYtDRJ0",
+				"https://youtu.be/yyjC-xXOsdg",
+				"https://youtu.be/AzF44kouBBQ",
 			},
 			Footwork: []string{
 				"https://youtu.be/9i_5PgCYgts",
