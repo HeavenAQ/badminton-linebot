@@ -268,10 +268,10 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/YX2zGLY0HmQ",
 			},
 			Smash: []string{
-				"https://youtu.be/nO3wo9VA9jk",
+				"https://youtu.be/K7EEhEF2vMo",
 			},
 			Clear: []string{
-				"https://youtu.be/nO3wo9VA9jk",
+				"https://youtu.be/K7EEhEF2vMo",
 			},
 		},
 		db.Left: {
@@ -280,12 +280,12 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 				"https://youtu.be/lAYC7QMRcZU",
 			},
 			Smash: []string{
-				"https://youtu.be/0_w5GZs0cjU",
-				"https://youtu.be/XtQfdYtDRJ0",
+				"https://youtu.be/yyjC-xXOsdg",
+				"https://youtu.be/AzF44kouBBQ",
 			},
 			Clear: []string{
-				"https://youtu.be/0_w5GZs0cjU",
-				"https://youtu.be/XtQfdYtDRJ0",
+				"https://youtu.be/yyjC-xXOsdg",
+				"https://youtu.be/AzF44kouBBQ",
 			},
 		},
 	}
