@@ -115,25 +115,31 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 	replyToken := event.ReplyToken
 	switch event.Message.(*linebot.TextMessage).Text {
 	case "使用說明":
+		app.resetUserSession(user.Id)
 		res, err := app.Bot.SendInstruction(replyToken)
 		if err != nil {
 			app.WarnLogger.Println("\n\tError sending instruction: ", err)
 		}
 		app.InfoLogger.Println("\n\tInstruction sent. Response from line: ", res)
 	case "我的學習歷程":
+		app.resetUserSession(user.Id)
 		app.Bot.PromptSkillSelection(replyToken, line.ViewPortfolio, "請選擇要查看的學習歷程")
 	case "專家影片":
+		app.resetUserSession(user.Id)
 		_, err := app.Bot.PromptHandednessSelection(replyToken)
 		if err != nil {
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
 	case "上傳錄影":
+		app.resetUserSession(user.Id)
 		app.Bot.PromptSkillSelection(replyToken, line.Upload, "請選擇要上傳錄影的動作")
 		go app.updateUserState(user.Id, db.UploadingVideo)
 	case "新增學習反思":
+		app.resetUserSession(user.Id)
 		app.Bot.PromptSkillSelection(replyToken, line.AddReflection, "請選擇要新增學習反思的動作")
 		go app.updateUserState(user.Id, db.WritingReflection)
 	case "課程大綱":
+		app.resetUserSession(user.Id)
 		app.Bot.SendSyllabus(replyToken)
 	default:
 		isWritingReflection := session.UserState == db.WritingReflection
