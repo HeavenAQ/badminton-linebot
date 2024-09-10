@@ -57,7 +57,7 @@ func updateUserPortfolioVideo(app App, user *db.UserData, session *db.UserSessio
 	}
 
 	// if no suggestions, add a default one
-	if aiSuggestions == nil || len(aiSuggestions) == 0 {
+	if len(aiSuggestions) == 0 {
 		aiSuggestions = []string{"動作標準，無須調整"}
 	}
 

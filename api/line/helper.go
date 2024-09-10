@@ -83,7 +83,7 @@ func (handler *LineBotHandler) getCarouselItem(work db.Work, userState db.UserSt
 		Type: "bubble",
 		Hero: &linebot.ImageComponent{
 			Type:        "image",
-			URL:         "https://lh3.googleusercontent.com/d/" + work.SkeletonVideo + "=w1080?authuser=0",
+			URL:         "https://drive.usercontent.google.com/download?id=" + work.Thumbnail,
 			Size:        "full",
 			AspectRatio: "20:13",
 			AspectMode:  "cover",
