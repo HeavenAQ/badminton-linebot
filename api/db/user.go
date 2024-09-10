@@ -1,8 +1,6 @@
 package db
 
 import (
-	"time"
-
 	drive "github.com/HeavenAQ/api/drive"
 	googleDrive "google.golang.org/api/drive/v3"
 )
@@ -61,14 +59,13 @@ func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness 
 }
 
 func (handler *FirebaseHandler) CreateUserPortfolioVideo(user *UserData, userPortfolio *map[string]Work, session *UserSession, driveFile *googleDrive.File, thumbnailFile *googleDrive.File) error {
-	date := time.Now().Format("2006-01-02-15-04")
 	work := Work{
 		DateTime:   driveFile.Name,
 		Reflection: "尚未填寫心得",
 		Thumbnail:  "https://drive.usercontent.google.com/download?id=" + thumbnailFile.Id,
 		Video:      "https://drive.google.com/uc?export=download&id=" + driveFile.Id,
 	}
-	(*userPortfolio)[date] = work
+	(*userPortfolio)[driveFile.Name] = work
 	handler.UpdateUserSession(user.Id, *session)
 	return handler.updateUserData(user)
 }

@@ -1,6 +1,7 @@
 package line
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -88,7 +89,7 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill, carouselBtn CarouselBtn) error {
 	// get works from user portfolio
 	works := user.Portfolio.GetSkillPortfolio(skill.String())
-	if works == nil || len(works) == 0 {
+	if len(works) == 0 {
 		var msg string
 		if works == nil {
 			msg = "請輸入正確的羽球動作"
@@ -111,6 +112,12 @@ func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *
 	var sendMsgs []linebot.SendingMessage
 	for _, msg := range carousels {
 		sendMsgs = append(sendMsgs, msg)
+		prettyMsg, err := json.MarshalIndent(msg, "", "  ")
+		if err != nil {
+			fmt.Println("Error marshalling to JSON:", err)
+			continue
+		}
+		fmt.Println(string(prettyMsg))
 	}
 
 	_, err = handler.bot.ReplyMessage(event.ReplyToken, sendMsgs...).Do()

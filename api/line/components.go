@@ -96,6 +96,10 @@ func portfolioCardComponent(work db.Work, userProfileImg string, userName string
 	viewVideoBtn := createViewVideoAction(work.Video, work.Thumbnail)
 	updateReflectionBtn := createUpdateReflectionAction(work.DateTime)
 
+	if userProfileImg == "" {
+		userProfileImg = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+	}
+
 	return &linebot.BubbleContainer{
 		Type: "bubble",
 		Hero: &linebot.ImageComponent{
