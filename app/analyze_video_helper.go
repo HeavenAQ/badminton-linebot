@@ -21,8 +21,8 @@ import (
 
 type AnalyzedResult struct {
 	SkeletonVideo string   `json:"skeleton_video"`
-	Suggestions   []string `json:"suggestions"`
 	Score         string   `json:"score"`
+	Suggestions   []string `json:"suggestions"`
 }
 
 func downloadVideo(app App, event *linebot.Event) (io.Reader, error) {
@@ -146,12 +146,42 @@ func analyzeVideo(app App, resizedVideo string, user *db.UserData, session *db.U
 	baseURL := os.Getenv("GENAI_URL") + "/analyze"
 	client := resty.New()
 	client.SetTimeout(1 * time.Minute)
-	resp, err := client.R().
-		SetBasicAuth(os.Getenv("GENAI_USER"), os.Getenv("GENAI_PASSWORD")).
-		SetQueryParam("handedness", user.Handedness.String()).
-		SetQueryParam("skill", session.Skill).
-		SetFileReader("file", filename, bytes.NewReader(resizedBlob)).
-		Post(baseURL)
+
+	maxRetries := 3
+	delay := 5 * time.Second
+	var resp *resty.Response
+	for i := 0; i < maxRetries; i++ {
+		// send video to AI server
+		resp, err = client.R().
+			SetBasicAuth(os.Getenv("GENAI_USER"), os.Getenv("GENAI_PASSWORD")).
+			SetQueryParam("handedness", user.Handedness.String()).
+			SetQueryParam("skill", session.Skill).
+			SetFileReader("file", filename, bytes.NewReader(resizedBlob)).
+			Post(baseURL)
+
+		// if no error and status code is not 502, break the loop
+		if err == nil && resp.StatusCode() != 502 {
+			break
+			// if status code is 502, retry after 5 seconds
+		} else if resp != nil && resp.StatusCode() == 502 {
+			app.WarnLogger.Println("AI Server is busy, retrying in 5 seconds")
+			time.Sleep(delay)
+			// if error is not nil, return error
+		} else if err != nil {
+			return nil, err
+		}
+	}
+
+	// Check if we have a valid response
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("failed to get response from AI server after %d retries", maxRetries)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("unexpected status code %d from AI server", resp.StatusCode())
+	}
 
 	// parse response to json
 	var result AnalyzedResult
@@ -187,16 +217,21 @@ func (app *App) createVideoThumbnail(event *linebot.Event, user *db.UserData, bl
 	// Using ffmpeg to create video thumbnail
 	app.InfoLogger.Println("Extracting thumbnail from the video")
 	outFileName := "/tmp/" + user.Id + ".jpeg"
-	err = ffmpeg_go.Input(filename).
+
+	var stderr bytes.Buffer
+	err = ffmpeg_go.Input(filename, ffmpeg_go.KwArgs{
+		"ss": "00:00:01", // place ss before input file to avoid seeking issues
+	}).
 		Output(outFileName, ffmpeg_go.KwArgs{
-			"vframes": 1,                        // extract exactly 1 frame
-			"vcodec":  "mjpeg",                  // make it a jpeg file
-			"vf":      "thumbnail,scale=320:-1", // scale the image to 320px width, keep aspect ratio
-			"ss":      "00:00:01",               // extract frame at 1 second
+			"vframes": 1,              // extract exactly 1 frame
+			"vcodec":  "mjpeg",        // make it a jpeg file
+			"vf":      "scale=320:-1", // scale the image to 320px width, keep aspect ratio
 		}).
+		WithErrorOutput(&stderr). // Capture stderr for debugging
 		Run()
 	if err != nil {
 		app.ErrorLogger.Println("\n\tError extracting thumbnail from video:", err)
+		app.ErrorLogger.Println("\n\tffmpeg stderr:", stderr.String())
 		return "", err
 	}
 
