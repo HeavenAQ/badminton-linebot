@@ -147,8 +147,8 @@ func analyzeVideo(app App, resizedVideo string, user *db.UserData, session *db.U
 	client := resty.New()
 	client.SetTimeout(1 * time.Minute)
 
-	maxRetries := 3
-	delay := 5 * time.Second
+	maxRetries := 6
+	delay := 10 * time.Second
 	var resp *resty.Response
 	for i := 0; i < maxRetries; i++ {
 		// send video to AI server
@@ -162,8 +162,8 @@ func analyzeVideo(app App, resizedVideo string, user *db.UserData, session *db.U
 		// if no error and status code is not 502, break the loop
 		if err == nil && resp.StatusCode() != 502 {
 			break
-			// if status code is 502, retry after 5 seconds
-		} else if resp != nil && resp.StatusCode() == 502 {
+			// if status code is 502 or 500, retry after 10 seconds
+		} else if resp != nil && (resp.StatusCode() == 502 || resp.StatusCode() == 500) {
 			app.WarnLogger.Println("AI Server is busy, retrying in 5 seconds")
 			time.Sleep(delay)
 			// if error is not nil, return error
