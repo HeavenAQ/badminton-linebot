@@ -99,6 +99,7 @@ func (handler *FirebaseHandler) UpdateUserPortfolioPreviewNote(user *UserData, u
 		AINote:        targetWork.AINote,
 		PreviewNote:   previewNote,
 		SkeletonVideo: targetWork.SkeletonVideo,
+		Thumbnail:     targetWork.Thumbnail,
 	}
 	(*userPortfolio)[session.UpdatingDate] = work
 
