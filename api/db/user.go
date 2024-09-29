@@ -79,6 +79,7 @@ func (handler *FirebaseHandler) UpdateUserPortfolioReflection(user *UserData, us
 		Reflection:    reflection,
 		PreviewNote:   targetWork.PreviewNote,
 		SkeletonVideo: targetWork.SkeletonVideo,
+		Thumbnail:     targetWork.Thumbnail,
 		AINote:        targetWork.AINote,
 	}
 	(*userPortfolio)[session.UpdatingDate] = work
