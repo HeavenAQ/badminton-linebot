@@ -1,0 +1,45 @@
+name: Generate weekly reports
+on:
+  schedule:
+    - cron: "0 * * * 1"
+
+jobs:
+  generate_report:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./reports
+    environment: nstc-linebot
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authorize Google Cloud SDK
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: "x64"
+
+      - name: Insatll Dependencies
+        run: |-
+          pip install -r requirements.txt
+          python -c "import sys; print(sys.version)"
+
+      - name: Generate Weekly Report
+        run: python main.py
