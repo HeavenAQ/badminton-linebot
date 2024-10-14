@@ -265,7 +265,7 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 	actionUrls := map[db.Handedness]map[Skill][]string{
 		db.Right: {
 			Serve: []string{
-				"https://youtu.be/YX2zGLY0HmQ",
+				"https://youtu.be/uE-EHVX1LrA",
 			},
 			Smash: []string{
 				"https://youtu.be/K7EEhEF2vMo",
@@ -276,8 +276,8 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 		},
 		db.Left: {
 			Serve: []string{
-				"https://youtu.be/IeI0RPoBBUs",
-				"https://youtu.be/lAYC7QMRcZU",
+				"https://youtu.be/7i0KvbJ4rEE",
+				"https://youtu.be/LiQWE6i3bbI",
 			},
 			Smash: []string{
 				"https://youtu.be/yyjC-xXOsdg",
