@@ -40,6 +40,9 @@ class ReportGenerator:
         # for workbook and openpyxl
         self.workbook = WorkbookHandler(output_path)
 
+        # for student data
+        self.students = [*map(self.extract_student_data, self.firestore.docs)]
+
     def init_workbook(self):
         wb = Workbook()
         if wb.active:
@@ -136,25 +139,23 @@ class ReportGenerator:
         img_stream.seek(0)
         return img_stream
 
-    def generate(self):
-        for doc in self.firestore.docs:
-            sheet = self.extract_student_data(doc)
-
+    def generate_students_records(self):
+        for student in self.students:
             # skip the admin and the teacher
-            if sheet["name"] == "Heaven" or "林國欽" in sheet["name"]:
+            if student["name"] == "Heaven" or "林國欽" in student["name"]:
                 continue
 
             # show the students who haven't completed the reflection and/or preview_note
-            missing_fields = self.get_studemtn_missing_fields(sheet)
+            missing_fields = self.get_studemtn_missing_fields(student)
             if missing_fields:
                 print(missing_fields)
                 # send_line_warning(sheet["line_id"], sheet["name"], missing_fields
 
             # Convert the student portfolio records to a DataFrame
-            portfolio_df = pd.DataFrame(sheet["portfolio"])
+            portfolio_df = pd.DataFrame(student["portfolio"])
 
             # Create a new sheet for the student
-            ws = self.workbook.create_student_sheet(sheet)
+            ws = self.workbook.create_student_sheet(student)
             self.workbook.add_student_records(ws, portfolio_df)
             self.workbook.mark_missing_fields(ws)
 
@@ -165,6 +166,84 @@ class ReportGenerator:
             img = Image(img_stream)
             ws.add_image(img, "A20")
 
+        self.workbook.save()
+
+    def generate_average_score_report(self, specified_dates: list[str]):
+        # List of specified dates in mm/dd format
+        # Convert specified_dates to a set for faster lookup
+        specified_dates_set = set(specified_dates)
+
+        # Initialize an empty list to collect all records
+        all_records = []
+
+        for student in self.students:
+            # Skip the admin and the teacher
+            if student["name"] == "Heaven" or "林國欽" in student["name"]:
+                continue
+
+            # For each portfolio record, extract date and score
+            for record in student["portfolio"]:
+                date_str = record["date"]  # Format is "%Y-%m-%d-%H-%M"
+                # Extract month and day
+                try:
+                    date_obj = dt.strptime(date_str, "%Y-%m-%d-%H-%M")
+                except ValueError:
+                    # Handle any parsing errors
+                    continue
+
+                month_day = date_obj.strftime("%m/%d")
+                if month_day in specified_dates_set:
+                    all_records.append(
+                        {
+                            "date": month_day,
+                            "score": record["score"],
+                        }
+                    )
+
+        # Now, we have all_records containing date and score for specified dates
+        # Convert to pandas DataFrame
+        records_df = pd.DataFrame(all_records)
+
+        if records_df.empty:
+            print("No records found for the specified dates.")
+            return
+
+        # Group by date and compute average score
+        avg_scores = records_df.groupby("date")["score"].mean().reset_index()
+
+        # Ensure dates are sorted according to specified_dates
+        avg_scores["date"] = pd.Categorical(
+            avg_scores["date"], categories=specified_dates, ordered=True
+        )
+        avg_scores = avg_scores.sort_values("date")
+
+        # Now, write this data into an Excel sheet
+        ws = self.workbook.wb.create_sheet("Average Scores")
+
+        # Write the header
+        ws.append(["Date", "Average Score"])
+
+        for _, row in avg_scores.iterrows():
+            ws.append([row["date"], row["score"]])
+
+        # Create a line plot of the average scores over time
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(avg_scores["date"], avg_scores["score"], marker="o", linestyle="-")
+        ax.set_title("Average Scores Over Time")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Average Score")
+        ax.set_xticks(avg_scores["date"])
+        ax.set_xticklabels(avg_scores["date"], rotation=45)
+
+        plt.tight_layout()
+        img_stream = io.BytesIO()
+        plt.savefig(img_stream, format="png")
+        plt.close()
+        img_stream.seek(0)
+        img = Image(img_stream)
+        ws.add_image(img, "D2")  # Adjust the cell position as needed
+
+        # Save the workbook
         self.workbook.save()
 
 
@@ -204,3 +283,4 @@ class WorkbookHandler:
 
     def save(self):
         self.wb.save(self.output_path)
+

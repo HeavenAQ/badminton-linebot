@@ -1,5 +1,25 @@
-from ReportGenerator import ReportGenerator
+from ReportGenerator import ReportGenerator, WorkbookHandler
 from GoogleDriveHandler import SecretManager, GoogleDriveHandler
+
+SPECIFIED_DATES = [
+    "09/16",
+    "09/23",
+    "09/30",
+    "10/07",
+    "10/14",
+    "10/21",
+    "10/28",
+    "11/04",
+    "11/11",
+    "11/18",
+    "11/25",
+    "12/02",
+    "12/09",
+    "12/16",
+    "12/23",
+    "12/30",
+    "01/06",
+]
 
 
 def create_report():
@@ -9,7 +29,9 @@ def create_report():
         root_collection="users",
         output_path="./student_portfolio_records.xlsx",
     )
-    report_generator.generate()
+    report_generator.generate_students_records()
+    report_generator.workbook = WorkbookHandler("./student_average.xlsx")
+    report_generator.generate_average_score_report(SPECIFIED_DATES)
 
 
 def get_gcp_secret(credentials: str):
@@ -28,7 +50,9 @@ def upload_report_to_google_drive(gcp_secret: bytes):
         "1gHlA1HH1lNbDFcHVf4nzvQcYFJNhqVds",
     )
     gdh.delete_file("student_portfolio_records.xlsx")
+    gdh.delete_file("student_average.xlsx")
     gdh.upload_file("./student_portfolio_records.xlsx")
+    gdh.upload_file("./student_average.xlsx")
 
 
 def main():
