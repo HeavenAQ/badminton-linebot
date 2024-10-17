@@ -31,7 +31,7 @@ def create_report():
     )
     report_generator.generate_students_records()
     report_generator.workbook = WorkbookHandler("./student_average.xlsx")
-    report_generator.generate_average_score_report(SPECIFIED_DATES)
+    report_generator.generate_average_and_median_score_report(SPECIFIED_DATES)
 
 
 def get_gcp_secret(credentials: str):

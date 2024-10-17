@@ -168,7 +168,7 @@ class ReportGenerator:
 
         self.workbook.save()
 
-    def generate_average_score_report(self, specified_dates: list[str]):
+    def generate_average_and_median_score_report(self, specified_dates: list[str]):
         # List of specified dates in mm/dd format
         # Convert specified_dates to a set for faster lookup
         specified_dates_set = set(specified_dates)
@@ -182,6 +182,7 @@ class ReportGenerator:
                 continue
 
             # For each portfolio record, extract date and score
+            date_max_records = {}
             for record in student["portfolio"]:
                 date_str = record["date"]  # Format is "%Y-%m-%d-%H-%M"
                 # Extract month and day
@@ -193,12 +194,12 @@ class ReportGenerator:
 
                 month_day = date_obj.strftime("%m/%d")
                 if month_day in specified_dates_set:
-                    all_records.append(
-                        {
-                            "date": month_day,
-                            "score": record["score"],
-                        }
-                    )
+                    date_max_record = date_max_records.get(month_day, 0)
+                    if date_max_record < record["score"]:
+                        date_max_records[month_day] = record["score"]
+
+            for date, score in date_max_records.items():
+                all_records.append({"date": date, "score": score})
 
         # Now, we have all_records containing date and score for specified dates
         # Convert to pandas DataFrame
@@ -217,18 +218,40 @@ class ReportGenerator:
         )
         avg_scores = avg_scores.sort_values("date")
 
+        # Group by date and compute median score
+        median_scores = records_df.groupby("date")["score"].median().reset_index()
+        median_scores["date"] = pd.Categorical(
+            median_scores["date"], categories=specified_dates, ordered=True
+        )
+        median_scores = median_scores.sort_values("date")
+
         # Now, write this data into an Excel sheet
-        ws = self.workbook.wb.create_sheet("Average Scores")
+        ws = self.workbook.wb.create_sheet("Average and Median Scores")
 
         # Write the header
-        ws.append(["Date", "Average Score"])
+        ws.append(["Date", "Average Score", "Median Score"])
 
-        for _, row in avg_scores.iterrows():
-            ws.append([row["date"], row["score"]])
+        for avg_row, median_row in zip(
+            avg_scores.itertuples(index=False), median_scores.itertuples(index=False)
+        ):
+            ws.append([avg_row.date, avg_row.score, median_row.score])
 
         # Create a line plot of the average scores over time
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(avg_scores["date"], avg_scores["score"], marker="o", linestyle="-")
+        ax.plot(
+            avg_scores["date"],
+            avg_scores["score"],
+            marker="o",
+            linestyle="-",
+            label="Average Score",
+        )
+        ax.plot(
+            median_scores["date"],
+            median_scores["score"],
+            marker="x",
+            linestyle="--",
+            label="Median Score",
+        )
         ax.set_title("Average Scores Over Time")
         ax.set_xlabel("Date")
         ax.set_ylabel("Average Score")
@@ -283,4 +306,3 @@ class WorkbookHandler:
 
     def save(self):
         self.wb.save(self.output_path)
-
