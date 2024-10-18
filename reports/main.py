@@ -21,16 +21,19 @@ SPECIFIED_DATES = [
     "01/06",
 ]
 
+student_portfolio_excel = "student_portfolio_records.xlsx"
+student_average_excel = "experimental_group_records.xlsx"
+
 
 def create_report():
     secret_data = get_gcp_secret("firebase-credentials")
     report_generator = ReportGenerator(
         firestore_credentials=secret_data,
         root_collection="users",
-        output_path="./student_portfolio_records.xlsx",
+        output_path="./" + student_portfolio_excel,
     )
     report_generator.generate_students_records()
-    report_generator.workbook = WorkbookHandler("./student_average.xlsx")
+    report_generator.workbook = WorkbookHandler("./" + student_average_excel)
     report_generator.generate_average_and_median_score_report(SPECIFIED_DATES)
 
 
@@ -49,10 +52,10 @@ def upload_report_to_google_drive(gcp_secret: bytes):
         gcp_secret,
         "1gHlA1HH1lNbDFcHVf4nzvQcYFJNhqVds",
     )
-    gdh.delete_file("student_portfolio_records.xlsx")
-    gdh.delete_file("student_average.xlsx")
-    gdh.upload_file("./student_portfolio_records.xlsx")
-    gdh.upload_file("./student_average.xlsx")
+    gdh.delete_file(student_portfolio_excel)
+    gdh.delete_file(student_average_excel)
+    gdh.upload_file("./" + student_portfolio_excel)
+    gdh.upload_file("./" + student_average_excel)
 
 
 def main():
