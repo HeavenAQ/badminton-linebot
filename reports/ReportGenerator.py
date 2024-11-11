@@ -54,6 +54,8 @@ class ReportGenerator:
         if not doc_dict:
             raise ValueError("Document is empty")
 
+        date_format = "%Y-%m-%d-%H-%M"
+        clear_start_date = dt.strptime("2024-11-04-00-00", date_format)
         student_data = Student(
             {
                 "name": doc_dict["Name"],
@@ -63,7 +65,10 @@ class ReportGenerator:
                     PortfolioRecord(
                         {
                             "date": record["DateTime"],
-                            "skill": "serve",  # Assuming the skill is serve
+                            "skill": "serve"
+                            if clear_start_date
+                            > dt.strptime(record["DateTime"], date_format)
+                            else "clear",
                             "score": record["Rating"],
                             "ai_note": record["AINote"],
                             "preview_note": ""
@@ -173,6 +178,9 @@ class ReportGenerator:
         # Convert specified_dates to a set for faster lookup
         specified_dates_set = set(specified_dates)
 
+        # Define the date cutoff as 11/04
+        date_cutoff = dt.strptime("11/04", "%m/%d")
+
         # Initialize an empty list to collect all records
         all_records = []
 
@@ -181,27 +189,28 @@ class ReportGenerator:
             if student["name"] == "Heaven" or "林國欽" in student["name"]:
                 continue
 
-            # For each portfolio record, extract date and score
-            date_max_records = {}
+            # For each portfolio record, extract date, score, and skill
             for record in student["portfolio"]:
                 date_str = record["date"]  # Format is "%Y-%m-%d-%H-%M"
-                # Extract month and day
+                skill = record["skill"]
+                # Parse date string
                 try:
                     date_obj = dt.strptime(date_str, "%Y-%m-%d-%H-%M")
                 except ValueError:
                     # Handle any parsing errors
                     continue
 
+                # Filter to include only records on or after 11/04 for "clear" skill
+                if skill == "clear" and date_obj < date_cutoff:
+                    continue
+
+                # Extract month and day
                 month_day = date_obj.strftime("%m/%d")
                 if month_day in specified_dates_set:
-                    date_max_record = date_max_records.get(month_day, 0)
-                    if date_max_record < record["score"]:
-                        date_max_records[month_day] = record["score"]
+                    all_records.append(
+                        {"date": month_day, "score": record["score"], "skill": skill}
+                    )
 
-            for date, score in date_max_records.items():
-                all_records.append({"date": date, "score": score})
-
-        # Now, we have all_records containing date and score for specified dates
         # Convert to pandas DataFrame
         records_df = pd.DataFrame(all_records)
 
@@ -209,62 +218,78 @@ class ReportGenerator:
             print("No records found for the specified dates.")
             return
 
-        # Group by date and compute average score
-        avg_scores = records_df.groupby("date")["score"].mean().reset_index()
-
-        # Ensure dates are sorted according to specified_dates
-        avg_scores["date"] = pd.Categorical(
-            avg_scores["date"], categories=specified_dates, ordered=True
-        )
-        avg_scores = avg_scores.sort_values("date")
-
-        # Group by date and compute median score
-        median_scores = records_df.groupby("date")["score"].median().reset_index()
-        median_scores["date"] = pd.Categorical(
-            median_scores["date"], categories=specified_dates, ordered=True
-        )
-        median_scores = median_scores.sort_values("date")
-
-        # Now, write this data into an Excel sheet
+        # Create a sheet in the workbook
         ws = self.workbook.wb.create_sheet("Average and Median Scores")
 
-        # Write the header
-        ws.append(["Date", "Average Score", "Median Score"])
+        # Process each skill separately
+        for skill in ["serve", "clear"]:
+            skill_df = records_df[records_df["skill"] == skill]
 
-        for avg_row, median_row in zip(
-            avg_scores.itertuples(index=False), median_scores.itertuples(index=False)
-        ):
-            ws.append([avg_row.date, avg_row.score, median_row.score])
+            if skill_df.empty:
+                continue
 
-        # Create a line plot of the average scores over time
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(
-            avg_scores["date"],
-            avg_scores["score"],
-            marker="o",
-            linestyle="-",
-            label="Average Score",
-        )
-        ax.plot(
-            median_scores["date"],
-            median_scores["score"],
-            marker="x",
-            linestyle="--",
-            label="Median Score",
-        )
-        ax.set_title("Average Scores Over Time")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Average Score")
-        ax.set_xticks(avg_scores["date"])
-        ax.set_xticklabels(avg_scores["date"], rotation=45)
+            # Group by date and compute average and median scores
+            avg_scores = skill_df.groupby("date")["score"].mean().reset_index()
+            median_scores = skill_df.groupby("date")["score"].median().reset_index()
 
-        plt.tight_layout()
-        img_stream = io.BytesIO()
-        plt.savefig(img_stream, format="png")
-        plt.close()
-        img_stream.seek(0)
-        img = Image(img_stream)
-        ws.add_image(img, "D2")  # Adjust the cell position as needed
+            # Ensure dates are sorted according to specified_dates
+            avg_scores["date"] = pd.Categorical(
+                avg_scores["date"], categories=specified_dates, ordered=True
+            )
+            avg_scores = avg_scores.sort_values("date")
+
+            median_scores["date"] = pd.Categorical(
+                median_scores["date"], categories=specified_dates, ordered=True
+            )
+            median_scores = median_scores.sort_values("date")
+
+            # Write headers for the skill
+            ws.append([f"{skill.capitalize()} Skill"])
+            ws.append(["Date", "Average Score", "Median Score"])
+
+            for avg_row, median_row in zip(
+                avg_scores.itertuples(index=False),
+                median_scores.itertuples(index=False),
+            ):
+                ws.append([avg_row.date, avg_row.score, median_row.score])
+
+            # Add an empty row for spacing
+            ws.append([])
+
+            # Create a line plot of the average and median scores over time
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.plot(
+                avg_scores["date"],
+                avg_scores["score"],
+                marker="o",
+                linestyle="-",
+                label="Average Score",
+            )
+            ax.plot(
+                median_scores["date"],
+                median_scores["score"],
+                marker="x",
+                linestyle="--",
+                label="Median Score",
+            )
+            ax.set_title(f"{skill.capitalize()} Skill Scores Over Time")
+            ax.set_xlabel("Date")
+            ax.set_ylabel("Score")
+            ax.set_xticks(avg_scores["date"])
+            ax.set_xticklabels(avg_scores["date"], rotation=45)
+            ax.legend()
+
+            plt.tight_layout()
+            img_stream = io.BytesIO()
+            plt.savefig(img_stream, format="png")
+            plt.close()
+            img_stream.seek(0)
+            img = Image(img_stream)
+            # Determine where to place the image in the sheet
+            if skill == "serve":
+                ws.add_image(img, "E2")  # Adjust the cell position as needed
+            else:
+                ws.add_image(img, "E38")  # Place the second image below the first
 
         # Save the workbook
         self.workbook.save()
