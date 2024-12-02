@@ -2,23 +2,16 @@ from ReportGenerator import ReportGenerator, WorkbookHandler
 from GoogleDriveHandler import SecretManager, GoogleDriveHandler
 
 SPECIFIED_DATES = [
-    "09/16",
     "09/23",
     "09/30",
     "10/07",
     "10/14",
     "10/21",
-    "10/28",
     "11/04",
     "11/11",
     "11/18",
     "11/25",
     "12/02",
-    "12/09",
-    "12/16",
-    "12/23",
-    "12/30",
-    "01/06",
 ]
 
 student_portfolio_excel = "student_portfolio_records.xlsx"
@@ -42,6 +35,12 @@ def get_gcp_secret(credentials: str):
     secret_name = secret_manager.get_secret_name_string(credentials)
     secret_data = secret_manager.access_secret_version(secret_name)
     secret_manager.close()
+    return secret_data
+
+
+def get_gcp_secret_from_file(credentials: str):
+    with open(credentials, "rb") as f:
+        secret_data = f.read()
     return secret_data
 
 

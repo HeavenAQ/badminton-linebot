@@ -184,15 +184,24 @@ class ReportGenerator:
         # Initialize an empty list to collect all records
         all_records = []
 
+        # Collect all student names
+        all_student_names = set()
+
+        # Dictionary to keep track of dates each student has records for
+        student_dates = {}
+
         for student in self.students:
             # Skip the admin and the teacher
             if student["name"] == "Heaven" or "林國欽" in student["name"]:
                 continue
 
+            all_student_names.add(student["name"])
+            student_dates.setdefault(student["name"], set())
+
             # For each portfolio record, extract date, score, and skill
-            for record in student["portfolio"]:
-                date_str = record["date"]  # Format is "%Y-%m-%d-%H-%M"
-                skill = record["skill"]
+            for name in student["portfolio"]:
+                date_str = name["date"]  # Format is "%Y-%m-%d-%H-%M"
+                skill = name["skill"]
                 # Parse date string
                 try:
                     date_obj = dt.strptime(date_str, "%Y-%m-%d-%H-%M")
@@ -208,8 +217,15 @@ class ReportGenerator:
                 month_day = date_obj.strftime("%m/%d")
                 if month_day in specified_dates_set:
                     all_records.append(
-                        {"date": month_day, "score": record["score"], "skill": skill}
+                        {
+                            "date": month_day,
+                            "score": name["score"],
+                            "skill": skill,
+                            "name": student["name"],
+                        }
                     )
+                    # Record that this student has a record on this date
+                    student_dates[student["name"]].add(month_day)
 
         # Convert to pandas DataFrame
         records_df = pd.DataFrame(all_records)
@@ -218,15 +234,62 @@ class ReportGenerator:
             print("No records found for the specified dates.")
             return
 
+        # Identify students who are missing any records on the specified dates
+        students_missing_dates = set()
+        for student_name in all_student_names:
+            dates_with_records = student_dates.get(student_name, set())
+            missing_dates = specified_dates_set - dates_with_records
+            if missing_dates:
+                students_missing_dates.add(student_name)
+        print(f"Students missing records: {students_missing_dates}")
+
         # Create a sheet in the workbook
         ws = self.workbook.wb.create_sheet("Average and Median Scores")
 
+        # Create a sheet to save the list of students who did not have records on the dates
+        missing_ws = self.workbook.wb.create_sheet("Students Missing Records")
+        missing_ws.append(["Student Name", "Missing Dates"])
+        missing_ws_df = {"Student Name": [], "Missing Dates": []}
+
+        # Write the students and their missing dates to the worksheet
+        for student_name in students_missing_dates:
+            dates_with_records = student_dates.get(student_name, set())
+            missing_dates = specified_dates_set - dates_with_records
+            missing_dates_str = ", ".join(sorted(missing_dates))
+            missing_ws.append([student_name, missing_dates_str])
+            missing_ws_df["Student Name"].append(student_name)
+            missing_ws_df["Missing Dates"].append(missing_dates_str)
+        missing_ws_df = pd.DataFrame(missing_ws_df)
+
+        print(missing_ws_df)
+        missing_ws_df["Missing Dates"] = missing_ws_df["Missing Dates"].apply(
+            lambda x: x.split(", ")
+        )
+
+        filtered_records_df = records_df
+        for name in students_missing_dates:
+            missing_dates = missing_ws_df[missing_ws_df["Student Name"] == name][
+                "Missing Dates"
+            ].values[0]
+
+            for date in missing_dates:
+                print(f"Removing records for {name} on {date}")
+                filtered_records_df = filtered_records_df[
+                    ~(
+                        (filtered_records_df["name"] == name)
+                        & (filtered_records_df["date"] == date)
+                    )
+                ]
+
         # Process each skill separately
         for skill in ["serve", "clear"]:
-            skill_df = records_df[records_df["skill"] == skill]
+            skill_df = filtered_records_df[filtered_records_df["skill"] == skill]
 
             if skill_df.empty:
                 continue
+
+            # **Keep only the highest score per student per date**
+            skill_df = skill_df.groupby(["name", "date"], as_index=False)["score"].max()
 
             # Group by date and compute average and median scores
             avg_scores = skill_df.groupby("date")["score"].mean().reset_index()
@@ -275,7 +338,7 @@ class ReportGenerator:
             ax.set_title(f"{skill.capitalize()} Skill Scores Over Time")
             ax.set_xlabel("Date")
             ax.set_ylabel("Score")
-            ax.set_xticks(avg_scores["date"])
+            ax.set_xticks(range(len(avg_scores["date"])))
             ax.set_xticklabels(avg_scores["date"], rotation=45)
             ax.legend()
 
