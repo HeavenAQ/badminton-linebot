@@ -3,12 +3,12 @@ name: Deploy to Cloud Run
 on:
   push:
     branches:
-      - main
+      - nstc-control
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: nstc-linebot
+    environment: nstc-linebot-control
     permissions:
       contents: read
       id-token: write
@@ -32,7 +32,7 @@ jobs:
       - name: Build and push Docker image
         run: |-
           gcloud builds submit \
-            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/nstc-linebot
+            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/nstc-linebot-control
 
       - name: Deploy to Cloud Run
         env:
@@ -46,8 +46,8 @@ jobs:
           FIREBASE_USERS: ${{ secrets.FIREBASE_USERS }}
           FIREBASE_SESSIONS: ${{ secrets.FIREBASE_SESSIONS }}
         run: |
-          gcloud run deploy nstc-linebot \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/nstc-linebot \
+          gcloud run deploy nstc-linebot-control \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/nstc-linebot-control \
             --platform managed \
             --region asia-east1 \
             --allow-unauthenticated \
