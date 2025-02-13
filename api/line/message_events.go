@@ -35,14 +35,9 @@ func (handler *LineBotHandler) SendVideoUploadedReply(replyToken string) (*lineb
 func (handler *LineBotHandler) SendInstruction(replyToken string) (*linebot.BasicResponse, error) {
 	const welcome = "歡迎加入羽球教室🏸，以下為選單的使用說明:\n\n"
 	const instruction = "➡️ 使用說明：呼叫選單各個項目的解說\n\n"
-	const portfolio = "➡️ 學習歷程：查看個人每周的學習歷程記錄\n\n"
 	const expertVideo = "➡️ 專家影片：觀看專家示範影片\n\n"
-	const addPreviewNote = "➡️ 課前動作檢測：課前預習上週動作，並記錄需進步的要點\n\n"
 	const analyzeRecording = "➡️ 分析影片：上傳個人動作錄影，系統將自動產生分析結果\n\n"
-	const addReflection = "➡️ 本週學習反思：新增每周各動作的學習反思\n\n"
-	const note1 = "✅ 如需查看課程大綱，請輸入「課程大綱」\n\n"
-	const note2 = "⚠️ 每周的學習歷程都需有【影片】才能建檔"
-	const msg = welcome + instruction + portfolio + expertVideo + addPreviewNote + analyzeRecording + addReflection + note1 + note2
+	const msg = welcome + instruction + expertVideo + analyzeRecording
 	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
 
