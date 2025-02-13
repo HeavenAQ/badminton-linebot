@@ -13,9 +13,9 @@ type FirebaseHandler struct {
 }
 
 type UserSession struct {
-	UserState    UserState `json:"userState"`
 	Skill        string    `json:"skill"`
 	UpdatingDate string    `json:"updatingDate"`
+	UserState    UserState `json:"userState"`
 }
 
 type UserState int8
@@ -28,11 +28,12 @@ const (
 )
 
 type UserData struct {
-	Name       string     `json:"name"`
-	Handedness Handedness `json:"handedness"`
-	Id         string     `json:"id"`
-	FolderIds  FolderIds  `json:"folderIds"`
 	Portfolio  Portfolio  `json:"portfolio"`
+	FolderIds  FolderIds  `json:"folderIds"`
+	Name       string     `json:"name"`
+	Id         string     `json:"id"`
+	TestNumber int        `json:"testNumber"`
+	Handedness Handedness `json:"handedness"`
 }
 
 type FolderIds struct {
@@ -65,10 +66,10 @@ type Work struct {
 	DateTime      string  `json:"date"`
 	Thumbnail     string  `json:"thumbnail"`
 	SkeletonVideo string  `json:"video"`
-	Rating        float32 `json:"rating"`
 	Reflection    string  `json:"reflection"`
 	PreviewNote   string  `json:"previewNote"`
 	AINote        string  `json:"aiNote"`
+	Rating        float32 `json:"rating"`
 }
 
 type Handedness int8

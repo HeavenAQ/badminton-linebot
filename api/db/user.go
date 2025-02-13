@@ -9,6 +9,7 @@ func (handler *FirebaseHandler) CreateUserData(userFolders *drive.UserFolders) (
 	ref := handler.GetUsersCollection().Doc(userFolders.UserId)
 	newUserTemplate := &UserData{
 		Name:       userFolders.UserName,
+		TestNumber: -1,
 		Id:         userFolders.UserId,
 		Handedness: Right,
 		FolderIds: FolderIds{
@@ -51,6 +52,11 @@ func (handler *FirebaseHandler) updateUserData(user *UserData) error {
 
 func (handler *FirebaseHandler) UpdateUserHandedness(user *UserData, handedness Handedness) error {
 	user.Handedness = handedness
+	return handler.updateUserData(user)
+}
+
+func (handler *FirebaseHandler) UpdateUserTestNumber(user *UserData, testNumber int) error {
+	user.TestNumber = testNumber
 	return handler.updateUserData(user)
 }
 

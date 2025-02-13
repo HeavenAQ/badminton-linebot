@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/HeavenAQ/api/db"
@@ -19,11 +20,11 @@ type App struct {
 	Bot         *line.LineBotHandler
 	Drive       *drive.GoogleDriveHandler
 	Db          *db.FirebaseHandler
-	RootFolder  string
 	Session     *scs.SessionManager
 	InfoLogger  *log.Logger
 	ErrorLogger *log.Logger
 	WarnLogger  *log.Logger
+	RootFolder  string
 }
 
 func NewApp() *App {
@@ -95,6 +96,22 @@ func (app *App) HandleCallback(w http.ResponseWriter, req *http.Request) {
 }
 
 func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, session *db.UserSession) {
+	if user.TestNumber == -1 {
+		// Convert the message containing users's test number to an integer
+		msg := event.Message.(*linebot.TextMessage).Text
+		number, err := strconv.Atoi(msg)
+		if err != nil {
+			app.WarnLogger.Println("\n\tInvalid test number")
+			app.Bot.SendReply(event.ReplyToken, "請於輸入測試編號（2碼）後開始使用！")
+			return
+		}
+
+		// Update the user's test number
+		app.Db.UpdateUserTestNumber(user, number)
+		app.Bot.SendReply(event.ReplyToken, "測試編號已設定為"+strconv.Itoa(number))
+		return
+	}
+
 	switch event.Message.(type) {
 	case *linebot.TextMessage:
 		app.handleTextMessage(event, user, session)

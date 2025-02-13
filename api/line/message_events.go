@@ -21,7 +21,7 @@ func (handler *LineBotHandler) SendWelcomeReply(event *linebot.Event) (*linebot.
 	if err != nil {
 		return nil, err
 	}
-	welcomMsg := "Hi " + username + "! 歡迎加入羽球教室🏸\n" + "已建立您的使用者資料🎉🎊 請點選選單的項目開始使用"
+	welcomMsg := "Hi " + username + "! 歡迎加入羽球教室🏸\n" + "已建立您的使用者資料🎉🎊 請於輸入前側編號（2碼）後開始使用"
 	return handler.SendReply(event.ReplyToken, welcomMsg)
 }
 

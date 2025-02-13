@@ -88,7 +88,7 @@ func (handler *LineBotHandler) ResolveViewExpertVideo(event *linebot.Event, user
 func (handler *LineBotHandler) ResolveViewPortfolio(event *linebot.Event, user *db.UserData, skill Skill, userState db.UserState) error {
 	// get works from user portfolio
 	works := user.Portfolio.GetSkillPortfolio(skill.String())
-	if works == nil || len(works) == 0 {
+	if len(works) == 0 {
 		var msg string
 		if works == nil {
 			msg = "請輸入正確的羽球動作"
