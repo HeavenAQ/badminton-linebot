@@ -131,6 +131,13 @@ func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, sess
 func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData) {
 	replyToken := event.ReplyToken
 	switch event.Message.(*linebot.TextMessage).Text {
+	case "使用說明":
+		app.resetUserSession(user.Id)
+		res, err := app.Bot.SendInstruction(replyToken)
+		if err != nil {
+			app.WarnLogger.Println("\n\tError sending instruction: ", err)
+		}
+		app.InfoLogger.Println("\n\tInstruction sent. Response from line: ", res)
 	case "專家影片":
 		app.resetUserSession(user.Id)
 		_, err := app.Bot.PromptHandednessSelection(replyToken)
@@ -144,13 +151,8 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData) {
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
 		app.updateUserState(user.Id, db.UploadingVideo)
-	case "課程大綱":
-		app.resetUserSession(user.Id)
-		res, err := app.Bot.SendSyllabus(replyToken)
-		if err != nil {
-			app.WarnLogger.Println("\n\tError sending syllabus: ", err)
-		}
-		app.InfoLogger.Println("\n\tSyllabus sent. Response from line: ", res)
+	default:
+		app.Bot.SendDefaultReply(replyToken)
 	}
 }
 
