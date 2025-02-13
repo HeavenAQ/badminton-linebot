@@ -114,7 +114,7 @@ func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, sess
 
 	switch event.Message.(type) {
 	case *linebot.TextMessage:
-		app.handleTextMessage(event, user, session)
+		app.handleTextMessage(event, user)
 	case *linebot.VideoMessage:
 		if session.UserState == db.UploadingVideo {
 			app.resolveUploadVideo(event, user, session)
@@ -128,19 +128,9 @@ func (app *App) handleMessageEvent(event *linebot.Event, user *db.UserData, sess
 	}
 }
 
-func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, session *db.UserSession) {
+func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData) {
 	replyToken := event.ReplyToken
 	switch event.Message.(*linebot.TextMessage).Text {
-	case "使用說明":
-		app.resetUserSession(user.Id)
-		res, err := app.Bot.SendInstruction(replyToken)
-		if err != nil {
-			app.WarnLogger.Println("\n\tError sending instruction: ", err)
-		}
-		app.InfoLogger.Println("\n\tInstruction sent. Response from line: ", res)
-	case "學習歷程":
-		app.resetUserSession(user.Id)
-		app.Bot.PromptSkillSelection(replyToken, line.ViewPortfolio, "請選擇要查看的學習歷程")
 	case "專家影片":
 		app.resetUserSession(user.Id)
 		_, err := app.Bot.PromptHandednessSelection(replyToken)
@@ -154,14 +144,6 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
 		app.updateUserState(user.Id, db.UploadingVideo)
-	case "本週學習反思":
-		app.resetUserSession(user.Id)
-		go app.Bot.PromptSkillSelection(replyToken, line.AddReflection, "請選擇要新增學習反思的動作")
-		app.updateUserState(user.Id, db.WritingReflection)
-	case "課前動作檢測":
-		app.resetUserSession(user.Id)
-		go app.Bot.PromptSkillSelection(replyToken, line.AddPreviewNote, "請選擇要新增課前檢視要點的動作")
-		app.updateUserState(user.Id, db.WritingPreviewNote)
 	case "課程大綱":
 		app.resetUserSession(user.Id)
 		res, err := app.Bot.SendSyllabus(replyToken)
@@ -169,16 +151,6 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData, sessi
 			app.WarnLogger.Println("\n\tError sending syllabus: ", err)
 		}
 		app.InfoLogger.Println("\n\tSyllabus sent. Response from line: ", res)
-	default:
-		isWritingReflection := session.UserState == db.WritingReflection
-		isWritingPreviewNote := session.UserState == db.WritingPreviewNote
-		if isWritingReflection {
-			app.resolveWritingReflection(event, user, session)
-		} else if isWritingPreviewNote {
-			app.resolveWritingPreviewNote(event, user, session)
-		} else {
-			app.Bot.SendDefaultReply(replyToken)
-		}
 	}
 }
 

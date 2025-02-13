@@ -25,13 +25,10 @@ func (handler *LineBotHandler) SendWelcomeReply(event *linebot.Event) (*linebot.
 	return handler.SendReply(event.ReplyToken, welcomMsg)
 }
 
-func (handler *LineBotHandler) SendVideoUploadedReply(replyToken string, skill string, videoFolder string) (*linebot.BasicResponse, error) {
-	s := SkillStrToEnum(skill)
-	skillFolder := "https://drive.google.com/drive/u/0/folders/" + videoFolder
+func (handler *LineBotHandler) SendVideoUploadedReply(replyToken string) (*linebot.BasicResponse, error) {
 	return handler.bot.ReplyMessage(
 		replyToken,
 		linebot.NewTextMessage("已成功上傳影片!"),
-		linebot.NewTextMessage("以下為【"+s.ChnString()+"】的影片資料夾：\n"+skillFolder),
 	).Do()
 }
 

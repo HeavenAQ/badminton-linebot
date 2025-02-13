@@ -72,13 +72,9 @@ func updateUserPortfolioVideo(app App, user *db.UserData, session *db.UserSessio
 	)
 }
 
-func sendVideoUploadedReply(app App, event *linebot.Event, session *db.UserSession, user *db.UserData) error {
+func sendVideoUploadedReply(app App, event *linebot.Event) error {
 	app.InfoLogger.Println("\n\tVideo uploaded successfully.")
-	_, err := app.Bot.SendVideoUploadedReply(
-		event.ReplyToken,
-		session.Skill,
-		app.getVideoFolder(user, session.Skill),
-	)
+	_, err := app.Bot.SendVideoUploadedReply(event.ReplyToken)
 
 	return err
 }
@@ -312,7 +308,7 @@ func (app *App) resolveUploadVideo(event *linebot.Event, user *db.UserData, sess
 	}
 
 	// send video uploaded reply
-	if err := sendVideoUploadedReply(*app, event, session, user); err != nil {
+	if err := sendVideoUploadedReply(*app, event); err != nil {
 		uploadError(*app, event, err, "\n\tError sending video uploaded reply:")
 		app.resetUserSession(user.Id)
 		return

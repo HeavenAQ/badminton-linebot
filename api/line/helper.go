@@ -48,9 +48,10 @@ func (handler *LineBotHandler) gePortfolioRating(work db.Work) *linebot.BoxCompo
 func (handler *LineBotHandler) getCarouselItem(work db.Work, userState db.UserState) *linebot.BubbleContainer {
 	rating := handler.gePortfolioRating(work)
 	var btnAction linebot.TemplateAction
-	if userState == db.WritingPreviewNote {
+	switch userState {
+	case db.WritingPreviewNote:
 		btnAction = linebot.NewPostbackAction("新增課前動作檢測要點", "type=add_preview_note&date="+work.DateTime, "", "", "openKeyboard", "")
-	} else if userState == db.WritingReflection {
+	case db.WritingReflection:
 		btnAction = linebot.NewPostbackAction("新增學習反思", "type=add_reflection&date="+work.DateTime, "", "", "openKeyboard", "")
 	}
 
