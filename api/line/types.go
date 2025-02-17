@@ -60,7 +60,7 @@ func (a Action) String() string {
 }
 
 func (a Action) ChnString() string {
-	return [...]string{"分析影片", "本週學習反思", "學習歷程", "課前動作檢測", "使用說明", "專家影片"}[a]
+	return [...]string{"上傳影片", "本週學習反思", "學習歷程", "課前動作檢測", "使用說明", "專家影片"}[a]
 }
 
 func ActionStrToEnum(str string) Action {

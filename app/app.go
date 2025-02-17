@@ -144,7 +144,7 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData) {
 		if err != nil {
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
-	case "分析影片":
+	case "上傳影片":
 		app.resetUserSession(user.Id)
 		_, err := app.Bot.PromptHandednessSelection(replyToken)
 		if err != nil {
@@ -215,7 +215,7 @@ func (app *App) handleHandednessReply(replyToken string, user *db.UserData, data
 
 	// check line action
 	if session.UserState == db.UploadingVideo {
-		app.Bot.PromptSkillSelection(replyToken, line.AnalyzeVideo, "請選擇要分析的動作")
+		app.Bot.PromptSkillSelection(replyToken, line.AnalyzeVideo, "請選擇要上傳的動作")
 	} else {
 		app.Bot.PromptSkillSelection(replyToken, line.ViewExpertVideo, "請選擇要觀看的動作")
 	}

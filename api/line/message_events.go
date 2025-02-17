@@ -36,7 +36,7 @@ func (handler *LineBotHandler) SendInstruction(replyToken string) (*linebot.Basi
 	const welcome = "歡迎加入羽球教室🏸，以下為選單的使用說明:\n\n"
 	const instruction = "➡️ 使用說明：呼叫選單各個項目的解說\n\n"
 	const expertVideo = "➡️ 專家影片：觀看專家示範影片\n\n"
-	const analyzeRecording = "➡️ 分析影片：上傳個人動作錄影，系統將自動產生分析結果\n\n"
+	const analyzeRecording = "➡️ 上傳影片：上傳個人動作錄影\n\n"
 	const msg = welcome + instruction + expertVideo + analyzeRecording
 	return handler.bot.ReplyMessage(replyToken, linebot.NewTextMessage(msg)).Do()
 }
