@@ -151,6 +151,10 @@ func (app *App) handleTextMessage(event *linebot.Event, user *db.UserData) {
 			app.ErrorLogger.Println("\n\tError prompting handedness selection: ", err)
 		}
 		app.updateUserState(user.Id, db.UploadingVideo)
+	case "重置編號":
+		app.resetUserSession(user.Id)
+		app.Db.UpdateUserTestNumber(user, -1)
+		app.Bot.SendReply(replyToken, "測試編號已重置，請重新輸入實驗標號2碼")
 	default:
 		app.Bot.SendDefaultReply(replyToken)
 	}
