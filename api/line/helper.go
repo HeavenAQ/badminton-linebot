@@ -282,7 +282,7 @@ func (handler *LineBotHandler) getActionUrls(hand db.Handedness, skill Skill) []
 			},
 			Smash: []string{
 				"https://youtu.be/2vTLZkNyIng",
-				"https://youtu.be/LiQWE6i3bbI",
+				"https://youtu.be/zn58JKpXy34",
 			},
 			Clear: []string{
 				"https://youtu.be/yyjC-xXOsdg",
